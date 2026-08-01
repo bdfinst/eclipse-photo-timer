@@ -1,0 +1,15 @@
+{
+  "codegraph": {
+    "install_accepted": true,
+    "init_accepted": true
+  },
+  "repowise": {
+    "install_accepted": true
+  },
+  "graphify": {
+    "install_declined": true
+  },
+  "mcp_hygiene": {
+    "gitignore": "added"
+  }
+}

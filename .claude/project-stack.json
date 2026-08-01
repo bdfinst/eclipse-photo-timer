@@ -1,0 +1,11 @@
+{
+  "detected": "2026-08-01",
+  "stacks": ["javascript", "node"],
+  "frameworks": ["react", "vitest", "tailwindcss", "vite-plugin-pwa", "playwright"],
+  "packageManager": "npm",
+  "hasDocker": false,
+  "indicators": {
+    "package.json": true,
+    "tsconfig.json": false
+  }
+}
