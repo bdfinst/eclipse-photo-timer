@@ -11,5 +11,16 @@
         ]
       }
     ]
+  },
+  "enabledPlugins": {
+    "dev-team@bfinster": true
+  },
+  "extraKnownMarketplaces": {
+    "bfinster": {
+      "source": {
+        "source": "github",
+        "repo": "bdfinst/agentic-dev-team"
+      }
+    }
   }
 }
