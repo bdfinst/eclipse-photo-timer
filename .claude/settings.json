@@ -20,7 +20,8 @@
       "source": {
         "source": "github",
         "repo": "bdfinst/agentic-dev-team"
-      }
+      },
+      "autoUpdate": true
     }
   }
 }

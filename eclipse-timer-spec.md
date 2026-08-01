@@ -32,9 +32,9 @@ Design against those three first.
 ## 2. Stack
 
 | Concern | Choice |
-|---|---|
-| Framework | React 18 + TypeScript |
-| Build | Vite 5 |
+| --- | --- |
+| Framework | React 18 + JS |
+| Build | Vite |
 | Styling | Tailwind CSS |
 | PWA | `vite-plugin-pwa` (Workbox), `registerType: 'autoUpdate'` |
 | State | React state + `localStorage`. No Redux, no server state library. |
@@ -106,7 +106,7 @@ export interface TimelineEvent {
 ### 4.1 Anchor times (Ólafsvík, 64.8945 N, 23.7108 W)
 
 | Contact | UTC |
-|---|---|
+| --- | --- |
 | C1 — first contact | 17:46:10 minus 59:10 → **16:47:00** |
 | C2 — totality begins | **17:46:10** |
 | C3 — totality ends | **17:48:13** |
@@ -263,6 +263,7 @@ Grouped, collapsible sections. Each item is a checkbox with a large tap target
 keyed by item id. A "reset all" in Settings.
 
 **The night before**
+
 - [ ] Charge camera battery + two spares
 - [ ] Charge the ≥27 W USB-C PD power bank
 - [ ] Format a 64 GB+ UHS-II card, in slot 1
@@ -275,6 +276,7 @@ keyed by item id. A "reset all" in Settings.
 - [ ] Set the clock offset in this app while you still have signal
 
 **Camera setup**
+
 - [ ] C1 — M, wide open, ISO 200, 1/400, Single, silent, RAW, WB 5400K
 - [ ] C2 — M, wide open, ISO 200, base 1/50, HDR `7f 2.0EV`, silent, RAW
 - [ ] C3 — M, wide open, ISO 1600, manual sweep 1.3 / 2.5 / 5 s
@@ -288,6 +290,7 @@ keyed by item id. A "reset all" in Settings.
 - [ ] AF set to MF
 
 **At the site (T−60 min)**
+
 - [ ] Tripod level, GTi polar aligned, **solar** tracking rate selected
 - [ ] Balanced at the 250 zoom mark, slightly camera-heavy
 - [ ] Zoom friction collar set to T
@@ -295,6 +298,7 @@ keyed by item id. A "reset all" in Settings.
 - [ ] USB PD connected with the camera off, USBP confirmed on power-up
 
 **T−15 min**
+
 - [ ] Focus locked and taped
 - [ ] Timer programmed: DELAY 0, LONG 1s, INTVL 4s, N = 826
 - [ ] Dry-run burst fired and reviewed
@@ -362,7 +366,7 @@ to C2), the mode chip if present, the title, and the detail line.
 State styling:
 
 | State | Treatment |
-|---|---|
+| --- | --- |
 | Past | 40 % opacity, title only, detail collapsed, compact height |
 | Active (now → next event) | Full width accent border, largest type, detail always shown, subtle pulse |
 | Next up (within 60 s) | Full opacity, slightly raised, detail shown |
@@ -418,7 +422,7 @@ Rate 1.0, volume 1.0.
 Web Audio API, generated in code (no audio files):
 
 | Cue | Sound |
-|---|---|
+| --- | --- |
 | Non-critical event due | Single 660 Hz sine, 120 ms |
 | Critical event T−10 to T−1 | 880 Hz blip, 80 ms, once per second |
 | Critical event due | Three 1320 Hz blips, 100 ms apart |
