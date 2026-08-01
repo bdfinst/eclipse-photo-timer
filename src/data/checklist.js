@@ -14,7 +14,13 @@
  * @property {ChecklistItem[]} items
  */
 
+import { removeItem } from '../services/storage.js'
+
 export const CHECKLIST_STORAGE_KEY = 'eclipse.checklist'
+
+export function resetChecklist() {
+  removeItem(CHECKLIST_STORAGE_KEY)
+}
 
 /** @type {ChecklistGroup[]} */
 export const CHECKLIST_GROUPS = [

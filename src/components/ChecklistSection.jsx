@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CHECKLIST_GROUPS, CHECKLIST_STORAGE_KEY } from '../data/checklist.js'
+import { CHECKLIST_GROUPS, CHECKLIST_STORAGE_KEY, resetChecklist } from '../data/checklist.js'
 import { getItem, setItem } from '../services/storage.js'
 
 function ChecklistSection() {
@@ -18,8 +18,20 @@ function ChecklistSection() {
     setOpenGroups((previous) => ({ ...previous, [groupId]: !previous[groupId] }))
   }
 
+  function handleReset() {
+    resetChecklist()
+    setChecked({})
+  }
+
   return (
     <section>
+      <button
+        type="button"
+        className="min-h-14 w-full text-left font-semibold"
+        onClick={handleReset}
+      >
+        Reset all
+      </button>
       {CHECKLIST_GROUPS.map((group) => (
         <div key={group.id}>
           <button

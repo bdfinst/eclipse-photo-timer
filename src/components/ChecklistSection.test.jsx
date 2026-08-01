@@ -33,6 +33,21 @@ describe('ChecklistSection', () => {
     expect(screen.getByLabelText('Rec View OFF')).not.toBeChecked()
   })
 
+  it('clears all checked items and localStorage when reset all is invoked', () => {
+    localStorage.setItem(
+      CHECKLIST_STORAGE_KEY,
+      JSON.stringify({ 'night-battery': true, 'camera-af': true }),
+    )
+    render(<ChecklistSection />)
+    expect(screen.getByLabelText('AF set to MF')).toBeChecked()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset all' }))
+
+    expect(screen.getByLabelText('Charge camera battery + two spares')).not.toBeChecked()
+    expect(screen.getByLabelText('AF set to MF')).not.toBeChecked()
+    expect(localStorage.getItem(CHECKLIST_STORAGE_KEY)).toBeNull()
+  })
+
   it('renders all items unchecked without throwing when persisted data is malformed', () => {
     localStorage.setItem(CHECKLIST_STORAGE_KEY, '{not valid json')
 
