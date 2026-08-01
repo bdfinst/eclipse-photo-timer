@@ -67,6 +67,12 @@ const CUE_SCHEDULES = {
   },
 }
 
+function getAudioContextClass() {
+  return typeof window === 'undefined'
+    ? undefined
+    : (window.AudioContext ?? window.webkitAudioContext)
+}
+
 export function playTone(cue) {
   const schedule = CUE_SCHEDULES[cue]
 
@@ -74,8 +80,7 @@ export function playTone(cue) {
     return { ok: false, reason: 'unsupported' }
   }
 
-  const AudioContextClass =
-    typeof window === 'undefined' ? undefined : (window.AudioContext ?? window.webkitAudioContext)
+  const AudioContextClass = getAudioContextClass()
 
   if (!AudioContextClass) {
     return { ok: false, reason: 'unsupported' }
@@ -99,4 +104,41 @@ export function shouldAnnounce(eventAt, now, leadSeconds) {
   const announceAt = eventAt - leadSeconds * 1000
 
   return announceAt >= now
+}
+
+function playSilentBuffer() {
+  const AudioContextClass = getAudioContextClass()
+
+  if (!AudioContextClass) {
+    return { ok: false, reason: 'unsupported' }
+  }
+
+  try {
+    const ctx = new AudioContextClass()
+    const buffer = ctx.createBuffer(1, 1, 22050)
+    const source = ctx.createBufferSource()
+    source.buffer = buffer
+    source.connect(ctx.destination)
+    source.start(0)
+    return { ok: true }
+  } catch {
+    return { ok: false, reason: 'unsupported' }
+  }
+}
+
+/**
+ * The GO LIVE unlock gesture (spec §7.1): plays a silent buffer through the
+ * AudioContext, then speaks a confirmation phrase, so the browser's
+ * user-gesture requirement is satisfied for the rest of the run. Returns
+ * { ok: true } only if both steps succeeded — the caller needs to know
+ * "unlocked" from "silently did nothing".
+ */
+export function unlockAudio() {
+  const bufferResult = playSilentBuffer()
+
+  if (!bufferResult.ok) {
+    return bufferResult
+  }
+
+  return speak('Audio ready')
 }

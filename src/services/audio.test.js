@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { playTone, shouldAnnounce, speak } from './audio.js'
+import { playTone, shouldAnnounce, speak, unlockAudio } from './audio.js'
 
 describe('audio: speak', () => {
   let synth
@@ -150,5 +150,73 @@ describe('audio: shouldAnnounce', () => {
     const leadSeconds = 10 // announce instant is 5 seconds from now
 
     expect(shouldAnnounce(eventAt, now, leadSeconds)).toBe(true)
+  })
+})
+
+function createMockAudioContextForUnlock() {
+  const bufferSource = {
+    buffer: null,
+    connect: vi.fn(),
+    start: vi.fn(),
+  }
+
+  function AudioContextMock() {
+    this.destination = {}
+  }
+
+  AudioContextMock.prototype.createBuffer = function () {
+    return {}
+  }
+
+  AudioContextMock.prototype.createBufferSource = function () {
+    return bufferSource
+  }
+
+  return { AudioContextMock, bufferSource }
+}
+
+describe('audio: unlockAudio', () => {
+  let synth
+
+  beforeEach(() => {
+    synth = {
+      cancel: vi.fn(),
+      speak: vi.fn(),
+      getVoices: vi.fn(() => []),
+    }
+    window.speechSynthesis = synth
+    global.SpeechSynthesisUtterance = vi.fn(function (text) {
+      this.text = text
+    })
+  })
+
+  afterEach(() => {
+    delete window.speechSynthesis
+    delete global.SpeechSynthesisUtterance
+    delete window.AudioContext
+  })
+
+  it('plays a silent buffer through the AudioContext and speaks a confirmation phrase', () => {
+    const { AudioContextMock, bufferSource } = createMockAudioContextForUnlock()
+    window.AudioContext = AudioContextMock
+
+    const result = unlockAudio()
+
+    expect(bufferSource.start).toHaveBeenCalledWith(0)
+    expect(synth.speak).toHaveBeenCalledTimes(1)
+    expect(synth.speak.mock.calls[0][0].text).toBe('Audio ready')
+    expect(result).toEqual({ ok: true })
+  })
+
+  it('returns { ok: false } rather than throwing when speechSynthesis is unavailable and AudioContext construction throws', () => {
+    delete window.speechSynthesis
+    function ThrowingAudioContext() {
+      throw new Error('blocked')
+    }
+    window.AudioContext = ThrowingAudioContext
+
+    const result = unlockAudio()
+
+    expect(result).toEqual({ ok: false, reason: 'unsupported' })
   })
 })
