@@ -12,6 +12,9 @@ export default defineConfig({
   use: {
     baseURL: 'http://localhost:4173',
     trace: 'on-first-retry',
+    ...(process.env.CLAUDE_CODE_REMOTE === 'true' && {
+      launchOptions: { executablePath: '/opt/pw-browsers/chromium' },
+    }),
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
 })
