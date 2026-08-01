@@ -36,4 +36,24 @@ describe('EVENTS', () => {
       expect(parsed.getUTCDate()).toBe(12)
     }
   })
+
+  it('transitions filterOn from true to false exactly once, at c2, and false to true exactly once, at c3', () => {
+    const trueToFalse = []
+    const falseToTrue = []
+
+    for (let i = 1; i < EVENTS.length; i++) {
+      const previous = EVENTS[i - 1]
+      const current = EVENTS[i]
+
+      if (previous.filterOn === true && current.filterOn === false) {
+        trueToFalse.push(current.id)
+      }
+      if (previous.filterOn === false && current.filterOn === true) {
+        falseToTrue.push(current.id)
+      }
+    }
+
+    expect(trueToFalse).toEqual(['c2'])
+    expect(falseToTrue).toEqual(['c3'])
+  })
 })
