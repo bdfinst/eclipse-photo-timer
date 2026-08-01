@@ -89,3 +89,14 @@ export function playTone(cue) {
     return { ok: false, reason: 'unsupported' }
   }
 }
+
+/**
+ * Catch-up rule (spec §7.4): an event's announcement instant is
+ * `eventAt - leadSeconds` seconds. If that instant is already in the past
+ * relative to `now`, the event must never be announced.
+ */
+export function shouldAnnounce(eventAt, now, leadSeconds) {
+  const announceAt = eventAt - leadSeconds * 1000
+
+  return announceAt >= now
+}

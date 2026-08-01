@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { playTone, speak } from './audio.js'
+import { playTone, shouldAnnounce, speak } from './audio.js'
 
 describe('audio: speak', () => {
   let synth
@@ -125,5 +125,30 @@ describe('audio: playTone', () => {
     const result = playTone('non-critical-due')
 
     expect(result).toEqual({ ok: false, reason: 'unsupported' })
+  })
+})
+
+describe('audio: shouldAnnounce', () => {
+  it('returns false when the announcement instant is already in the past', () => {
+    const now = 1_000_000
+    const eventAt = now - 5000 // event happened 5 seconds ago
+
+    expect(shouldAnnounce(eventAt, now, 0)).toBe(false)
+  })
+
+  it('returns false when the lead-adjusted instant has already passed, even though the event itself is still upcoming', () => {
+    const now = 1_000_000
+    const eventAt = now + 3000 // event is 3 seconds away
+    const leadSeconds = 10 // announce instant would be 7 seconds in the past
+
+    expect(shouldAnnounce(eventAt, now, leadSeconds)).toBe(false)
+  })
+
+  it('returns true when the announcement instant is still in the future', () => {
+    const now = 1_000_000
+    const eventAt = now + 15000 // event is 15 seconds away
+    const leadSeconds = 10 // announce instant is 5 seconds from now
+
+    expect(shouldAnnounce(eventAt, now, leadSeconds)).toBe(true)
   })
 })
