@@ -1,5 +1,11 @@
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
+import path from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { pwaManifest, pwaOptions } from './vite.config.js'
+import { cspContent, pwaManifest, pwaOptions } from './vite.config.js'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const indexHtml = readFileSync(path.join(__dirname, 'index.html'), 'utf-8')
 
 describe('vite-plugin-pwa configuration', () => {
   it('sets the manifest fields required by spec §9', () => {
@@ -32,5 +38,45 @@ describe('vite-plugin-pwa configuration', () => {
   it('precaches every static asset type with no runtime caching', () => {
     expect(pwaOptions.workbox.globPatterns).toEqual(['**/*.{js,css,html,svg,png,woff2}'])
     expect(pwaOptions.workbox.runtimeCaching).toBeUndefined()
+  })
+})
+
+describe('build-time CSP', () => {
+  it('locks down script/object/base-uri/form-action to same-origin only', () => {
+    expect(cspContent).toContain("default-src 'self'")
+    expect(cspContent).toContain("script-src 'self'")
+    expect(cspContent).toContain("object-src 'none'")
+    expect(cspContent).toContain("base-uri 'self'")
+    expect(cspContent).toContain("form-action 'none'")
+  })
+
+  it('is injected only at build time, never in dev', async () => {
+    const { default: config } = await import('./vite.config.js')
+    const cspPlugin = config.plugins.find((p) => p.name === 'csp-meta')
+    expect(cspPlugin.apply).toBe('build')
+  })
+
+  it('lands immediately after <meta charset>, ahead of every other head tag', async () => {
+    const { default: config } = await import('./vite.config.js')
+    const cspPlugin = config.plugins.find((p) => p.name === 'csp-meta')
+
+    const output = cspPlugin.transformIndexHtml.handler(indexHtml)
+
+    const charsetIndex = output.indexOf('<meta charset="UTF-8" />')
+    const cspIndex = output.indexOf('Content-Security-Policy')
+    const firstLinkIndex = output.indexOf('<link')
+
+    expect(charsetIndex).toBeGreaterThanOrEqual(0)
+    expect(cspIndex).toBeGreaterThan(charsetIndex)
+    expect(cspIndex).toBeLessThan(firstLinkIndex)
+    expect(output).toContain(cspContent)
+  })
+
+  it('throws rather than silently shipping without a policy if the charset marker is missing', async () => {
+    const { default: config } = await import('./vite.config.js')
+    const cspPlugin = config.plugins.find((p) => p.name === 'csp-meta')
+    const htmlWithoutCharsetMarker = indexHtml.replace('<meta charset="UTF-8" />', '')
+
+    expect(() => cspPlugin.transformIndexHtml.handler(htmlWithoutCharsetMarker)).toThrow(/csp-meta/)
   })
 })

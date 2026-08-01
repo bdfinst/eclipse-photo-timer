@@ -31,14 +31,48 @@ export const pwaOptions = {
   // Documented default, set explicitly: Slice 12's netlify.toml hardcodes
   // a /sw.js no-cache header as an assumed contract with this filename.
   filename: 'sw.js',
-  includeAssets: ['favicon.svg', 'apple-touch-icon.png'],
+  includeAssets: ['favicon.svg', 'icons/icon-192.png'],
   manifest: pwaManifest,
   workbox: {
     globPatterns: ['**/*.{js,css,html,svg,png,woff2}'],
   },
 }
 
+// Exported for vite.config.test.js. Injected only at build time (see the
+// csp-meta plugin below) — a strict script-src 'self' would block Vite's
+// dev-mode Fast Refresh inline preamble script (@vitejs/plugin-react
+// transformIndexHtml), breaking `npm run dev`. The production build only
+// ever loads external, same-origin scripts/styles, so the strict policy is
+// safe there. frame-ancestors is deliberately absent — not settable via a
+// meta tag; Slice 12's netlify.toml headers own it instead.
+export const cspContent =
+  "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'"
+
+// Build-only CSP injection, placed immediately after <meta charset> so no
+// earlier tag (favicon, apple-touch-icon) escapes the policy.
+const CHARSET_TAG = '<meta charset="UTF-8" />'
+
+const cspMetaPlugin = {
+  name: 'csp-meta',
+  apply: 'build',
+  transformIndexHtml: {
+    order: 'pre',
+    handler: (html) => {
+      const injected = html.replace(
+        CHARSET_TAG,
+        `${CHARSET_TAG}\n    <meta http-equiv="Content-Security-Policy" content="${cspContent}" />`,
+      )
+      if (injected === html) {
+        throw new Error(
+          `csp-meta: could not find ${CHARSET_TAG} in index.html — CSP was not injected`,
+        )
+      }
+      return injected
+    },
+  },
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), tailwindcss(), VitePWA(pwaOptions)],
+  plugins: [react(), tailwindcss(), VitePWA(pwaOptions), cspMetaPlugin],
 })

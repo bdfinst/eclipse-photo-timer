@@ -28,6 +28,10 @@ no semicolons, 2-space indent (see `prettier.config.js` / `.editorconfig`).
 **Activated review agent templates**: `esm-enforcer`, `react-testing`,
 `front-end-testing`.
 
+**Icon regeneration**: edit `scripts/icon-source.svg`, then run
+`node scripts/generate-icons.mjs` to rewrite `public/icons/*.png`. Commit the
+regenerated PNGs alongside the SVG change.
+
 **Code intelligence**: CodeGraph and Repowise are initialized for this repo
 (keyless, `.codegraph/` and `.repowise/` are gitignored/machine-local). A
 `postinstall` npm script re-provisions both automatically on a fresh
@@ -56,40 +60,46 @@ The MCP tools below serve pre-verified docs, symbols, history, and health from t
 ### Tools
 
 | Tool | When and why |
-|------|--------------|
+| ------ | -------------- |
 | `get_answer(question)` | First call for any how / where / why question. `confidence: "high"` or `grounding: "extracted"` is content-grounded — cite it directly. When the question names an indexed symbol, `symbol_bodies` carries its full live body (skip the `get_symbol` follow-up). Low confidence returns `best_guesses` with one-line justifications plus `code_rationale` (rationale comments mined live from candidate source). |
-| `get_context(targets=[...])` | Triage card for files/modules/symbols: summary, signatures, `symbol_id`s, `hotspot` bit. File targets auto-serve a `verified` skeleton (every signature at a fraction of a full Read); `mostly_full` marks files where Read costs little more. Batch targets in one call. Opt-in blocks: `include=["callers"|"callees"|"ownership"|"decisions"|"metrics"]`. |
+| `get_context(targets=[...])` | Triage card for files/modules/symbols: summary, signatures, `symbol_id`s, `hotspot` bit. File targets auto-serve a `verified` skeleton (every signature at a fraction of a full Read); `mostly_full` marks files where Read costs little more. Batch targets in one call. Opt-in blocks: `include=["callers" | "callees" | "ownership" | "decisions" | "metrics"]`. |
 | `get_symbol(id)` | One verified body: `"path.py::Name"` (indexed symbol), `"path.py:140-180"` (live range read), or `"repowise#<hex>"` (omission ref). Source arrives in Read's numbered format — treat it as an already-performed Read. `truncated` responses carry a `continuation` naming the exact next range; ambiguous ids return every match in `candidates`. Index misses fall back to live-grep `fallback_lines`. |
-| `search_codebase(query)` | Hybrid search, auto-routed by query shape: identifier → symbol hits (pipe `symbol_id` into `get_symbol`), path → file pages, prose → wiki-semantic. Force with `mode=symbol|path|concept|hybrid`. Concept hits carry a `sources` list; a hit whose sources are `[fts]` only is a keyword match with no semantic agreement — verify it. |
+| `search_codebase(query)` | Hybrid search, auto-routed by query shape: identifier → symbol hits (pipe `symbol_id` into `get_symbol`), path → file pages, prose → wiki-semantic. Force with `mode=symbol | path | concept | hybrid`. Concept hits carry a`sources` list; a hit whose sources are `[fts]` only is a keyword match with no semantic agreement — verify it. |
 | `get_why(query, targets?)` | Why the code is shaped this way: decision records with evidence and supersession lineage, falling back to git archaeology and `code_rationale` comments. Call before refactors or pattern divergences. |
 | `get_risk(targets, changed_files?)` | What history says about touching these files: churn, owners, co-change partners, blast radius. PR mode (`changed_files`) leads with a `directive` block — read `will_break` / `missing_cochanges` / `missing_tests` / `tests_to_run` first. `tests_to_run` is coverage-backed (the tests the per-test map proves exercise the changed files); empty means unknown, never no tests. To score a whole commit or diff range instead, use `get_change_risk`. |
 | `get_change_risk(revspec, extensions?, exclude_patterns?)` | Pre-merge defect score for a whole commit or `base..head` range, computed from its diff shape on the live checkout (no index, no LLM). Lead with `risk_percentile` (this change ranked against sampled recent commits), summarized by `review_priority` and `classification`; `score` / `probability` / `level` are the corpus-calibrated fallback. Distinct from `get_risk`, which scores indexed files by path. A `warning` field flags an empty diff (bad revspec or over-tight extension / exclusion filters). |
-| `get_health(targets?, include?)` | Health scores + findings on three dimensions (defect / maintainability / performance). Self-check the files you touched before finishing; `include=["biomarkers"|"refactoring"|"signals"]` for depth. |
+| `get_health(targets?, include?)` | Health scores + findings on three dimensions (defect / maintainability / performance). Self-check the files you touched before finishing; `include=["biomarkers" | "refactoring" | "signals"]` for depth. |
 | `get_dead_code()` | Confidence-tiered unreachable files / unused exports / zombie packages. For cleanup sweeps, not targeted fixes. |
 | `get_overview()` | Architecture map + tool recipes. Call once, first, in an unfamiliar repo; skip it after that. |
 
 **Compose them:** low-confidence `get_answer` → Read `best_guesses[0].file`; `get_context` shows `hotspot: true` → `get_risk` before editing; `decision_records` titles → `get_why(targets=[...])`; PR review → `get_risk(targets, changed_files)` and read `directive` first. A `tombstone` error means the file moved — follow `successor_paths`.
 
 ### Architecture
+
 **Files:** 13 | **Lines:** 777
 eclipse-photo-timer is a javascript codebase of 13 files. Execution starts at src/App.jsx, src/main.jsx. Start here when reading the codebase. Ranked by PageRank over the import graph: the files most of the codebase ultimately depends on.
 
 ### Key modules
+
 - `root` — src
 **Language:** javascript | **Files:** 8 | **Public symbols:** 1 / 1
 Covers the 8 source files in 2 directories under root
 
 ### Entry points
+
 - `src/App.jsx`
 - `src/main.jsx`
 
 ### Files that need care (bug-fix history first, then churn — check `get_risk` before editing)
+
 - `.claude/CLAUDE.md` — 3 commits/90d
 
 ### Code health
+
 Three co-equal signals: defect risk 9.95/10 avg, hotspot health 10.0/10 (stable), worst `scripts/postinstall-codeintel.js` at 9.5/10 · maintainability 9.91/10 · performance risk 3 open static I/O-in-loop / N+1 findings. Detail: `get_health()`.
 
 ### Commands
+
 - Build: `npm run build`
 - Test: `npm run test`
 - Lint: `npm run lint`

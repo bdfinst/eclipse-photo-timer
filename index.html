@@ -2,6 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!-- The CSP meta tag is injected here at build time only (vite.config.js's
+         csp-meta plugin) — a strict script-src 'self' would block Vite's
+         dev-mode Fast Refresh inline preamble script. See vite.config.js
+         for the policy string and rationale. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
