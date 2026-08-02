@@ -1,6 +1,11 @@
 import { useEffect, useRef } from 'react'
 import { EVENTS } from '../data/timeline.js'
 import { speak, playTone } from '../services/audio.js'
+import { clockService, getRehearsalSpeed } from '../services/clock.js'
+
+// Above 2x rehearsal speed, speech is suppressed (tones only) — spec §8:
+// "At speeds above 2×, suppress speech and keep tones only."
+const MAX_SPEECH_SPEED = 2
 
 // This hook implements spec §7.4's catch-up rule itself (see
 // useAnnouncements' docstring), rather than calling audio.js's
@@ -90,13 +95,13 @@ export function getScheduledInstants(event) {
   return instants
 }
 
-function fire(instant, audioMasterOn, audioVoiceOn, audioTonesOn) {
+function fire(instant, audioMasterOn, audioVoiceOn, audioTonesOn, rehearsalSpeed) {
   if (!audioMasterOn) {
     return
   }
 
   if (instant.type === 'speak') {
-    if (audioVoiceOn) {
+    if (audioVoiceOn && rehearsalSpeed <= MAX_SPEECH_SPEED) {
       speak(instant.text)
     }
     return
@@ -154,6 +159,15 @@ export function useAnnouncements(now, audioMasterOn, audioVoiceOn, audioTonesOn)
     const isFirstTick = isFirstTickRef.current
     isFirstTickRef.current = false
 
+    // Read fresh each tick — same pattern as the audio settings above — so a
+    // speed change mid-rehearsal takes effect on the very next tick. Gated
+    // on isRehearsal(): the persisted speed setting outlives the rehearsal
+    // session itself (nothing clears it on exit), so treating a stale
+    // leftover "60" as real speed on the actual live eclipse-day run would
+    // silently suppress every announcement — the one thing this app exists
+    // to get right when it matters most.
+    const rehearsalSpeed = clockService.isRehearsal() ? getRehearsalSpeed() : 1
+
     for (const event of EVENTS) {
       const eventAtMs = Date.parse(event.at)
 
@@ -173,7 +187,7 @@ export function useAnnouncements(now, audioMasterOn, audioVoiceOn, audioTonesOn)
           continue // catch-up rule: already past on first observation
         }
 
-        fire(instant, audioMasterOn, audioVoiceOn, audioTonesOn)
+        fire(instant, audioMasterOn, audioVoiceOn, audioTonesOn, rehearsalSpeed)
       }
     }
   }, [now, audioMasterOn, audioVoiceOn, audioTonesOn])

@@ -1,7 +1,9 @@
 import { act, renderHook } from '@testing-library/react'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getScheduledInstants, useAnnouncements } from './useAnnouncements.js'
 import { speak, playTone } from '../services/audio.js'
+import { setItem } from '../services/storage.js'
+import { clockService, REHEARSAL_SPEED_KEY } from '../services/clock.js'
 
 vi.mock('../services/audio.js', () => ({
   speak: vi.fn(),
@@ -22,6 +24,10 @@ describe('useAnnouncements', () => {
   beforeEach(() => {
     speak.mockClear()
     playTone.mockClear()
+  })
+
+  afterEach(() => {
+    clockService.clearVirtual()
   })
 
   it('fires the critical lead-time announcement and the T-5 bare countdown exactly once each', () => {
@@ -113,6 +119,50 @@ describe('useAnnouncements', () => {
     )
 
     expect(speak).toHaveBeenCalledWith('First contact. Start the timer now.')
+  })
+
+  it('suppresses speak() but still plays the tone above 2x rehearsal speed (spec §8)', () => {
+    localStorage.clear()
+    setItem(REHEARSAL_SPEED_KEY, 10)
+    clockService.setVirtual(ARM_AT - 10_001, 10)
+
+    const { rerender } = renderAnnouncements(ARM_AT - 10_001)
+
+    // 'arm''s lead-voice instant (T-10, a speak instant) is reached.
+    act(() => rerender({ now: ARM_AT - 10_000, master: true, voice: true, tones: true }))
+    expect(speak).not.toHaveBeenCalled()
+
+    // 'arm''s T-5 warning tone instant is also reached — tones still fire.
+    act(() => rerender({ now: ARM_AT - 5_000, master: true, voice: true, tones: true }))
+    expect(speak).not.toHaveBeenCalled()
+    expect(playTone).toHaveBeenCalled()
+  })
+
+  it('still speaks at exactly 2x rehearsal speed', () => {
+    localStorage.clear()
+    setItem(REHEARSAL_SPEED_KEY, 2)
+    clockService.setVirtual(ARM_AT - 10_001, 2)
+
+    const { rerender } = renderAnnouncements(ARM_AT - 10_001)
+
+    act(() => rerender({ now: ARM_AT - 10_000, master: true, voice: true, tones: true }))
+
+    expect(speak).toHaveBeenCalledWith('Arm the timer')
+  })
+
+  it('never suppresses speech on the real (non-rehearsal) clock, even if a stale rehearsal speed is still persisted from an earlier session', () => {
+    localStorage.clear()
+    // Simulates the exact bug this guards against: the operator rehearsed
+    // at 10x earlier, then the app is used live — nothing ever clears this
+    // key, so it would still read 10 here were it not gated on isRehearsal().
+    setItem(REHEARSAL_SPEED_KEY, 10)
+    expect(clockService.isRehearsal()).toBe(false)
+
+    const { rerender } = renderAnnouncements(ARM_AT - 10_001)
+
+    act(() => rerender({ now: ARM_AT - 10_000, master: true, voice: true, tones: true }))
+
+    expect(speak).toHaveBeenCalledWith('Arm the timer')
   })
 })
 

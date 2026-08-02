@@ -4,6 +4,7 @@ import { clockService } from '../services/clock.js'
 import { C2 } from '../data/timeline.js'
 import ChecklistSection from '../components/ChecklistSection.jsx'
 import SettingsPanel from '../components/SettingsPanel.jsx'
+import RehearsalPanel, { RehearsalBanner } from '../components/RehearsalPanel.jsx'
 
 // Verbatim from eclipse-timer-spec.md §5.3 — do not reformat the numbers.
 const REFERENCE_CARD_LINES = [
@@ -38,6 +39,7 @@ function PrepScreen({ onGoLive }) {
 
   return (
     <div>
+      <RehearsalBanner />
       <header>
         <h1>Eclipse Timer</h1>
         <p>{countdown}</p>
@@ -55,6 +57,10 @@ function PrepScreen({ onGoLive }) {
       <details>
         <summary>Settings</summary>
         <SettingsPanel />
+      </details>
+      <details>
+        <summary>Rehearsal</summary>
+        <RehearsalPanel />
       </details>
     </div>
   )

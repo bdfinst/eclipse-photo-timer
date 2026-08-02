@@ -13,6 +13,7 @@ import { formatUtcTime } from '../lib/formatTime.js'
 import FilterBanner from '../components/FilterBanner.jsx'
 import NextAction from '../components/NextAction.jsx'
 import EventCard from '../components/EventCard.jsx'
+import { RehearsalBanner } from '../components/RehearsalPanel.jsx'
 import {
   deriveEventState,
   isTotalityBlockVisible,
@@ -115,6 +116,7 @@ function LiveScreen({ initialAudioStatus = 'pending' }) {
 
   return (
     <div>
+      <RehearsalBanner />
       <div ref={liveContentRef} data-testid="live-content" tabIndex={-1}>
         <FilterBanner filterOn={filterOn} />
         <p>

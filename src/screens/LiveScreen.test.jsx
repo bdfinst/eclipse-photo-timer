@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import LiveScreen from './LiveScreen.jsx'
 import { setItem } from '../services/storage.js'
 import { clockService } from '../services/clock.js'
+import { C2, C3 } from '../data/timeline.js'
 import { unlockAudio, speak, playTone } from '../services/audio.js'
 
 vi.mock('../services/audio.js', async (importOriginal) => {
@@ -477,6 +478,127 @@ describe('LiveScreen prefers-reduced-motion', () => {
       behavior: 'auto',
       block: 'center',
     })
+  })
+})
+
+describe('LiveScreen rehearsal banner (spec §8)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    clockService.clearVirtual()
+    vi.restoreAllMocks()
+  })
+
+  it('shows no banner while live, and the striped banner once rehearsal is armed', () => {
+    vi.setSystemTime(Date.parse('2026-08-12T16:46:00Z'))
+
+    render(<LiveScreen />)
+    expect(screen.queryByText('REHEARSAL — NOT LIVE')).not.toBeInTheDocument()
+
+    act(() => {
+      clockService.setVirtual(clockService.now(), 1)
+      vi.advanceTimersByTime(250)
+    })
+
+    expect(screen.getByText('REHEARSAL — NOT LIVE')).toBeInTheDocument()
+  })
+})
+
+describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step 10.5)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+    Element.prototype.scrollIntoView = vi.fn()
+    speak.mockClear()
+    playTone.mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    clockService.clearVirtual()
+    vi.restoreAllMocks()
+  })
+
+  it('fires the T-10 voice cue, the ten per-second warning blips, the filter-off sweep at C2, and auto-scrolls unattended through the totality sequence', () => {
+    clockService.setVirtual(Date.parse(C2) - 30_000, 1)
+
+    render(<LiveScreen />)
+
+    // Advance 19s of virtual (== real, at 1x) time: C2-30s -> C2-11s (T-11,
+    // one tick before c2's own T-10 lead/warning instant), so the loop below
+    // observes the T-10 step itself rather than it having already fired.
+    act(() => {
+      vi.advanceTimersByTime(19_000)
+    })
+
+    // Advance second-by-second from T-10 through T-1, confirming a NEW
+    // critical-warning blip fires at every one of the ten steps — an EXACT
+    // per-step delta, not just "greater than before": burst-1 (5s after c2)
+    // starts its own T-10..T-1 warning window at c2's own T-5, so from that
+    // point on each tick legitimately carries two blips (c2's own plus
+    // burst-1's), and a c2-specific regression hiding behind burst-1's
+    // contribution would slip past a looser ">0" check.
+    const EXPECTED_WARNING_DELTAS = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
+
+    function countWarningBlips() {
+      return playTone.mock.calls.filter(([cue]) => cue === 'critical-warning').length
+    }
+
+    let previousCount = countWarningBlips()
+    for (const expectedDelta of EXPECTED_WARNING_DELTAS) {
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+      const count = countWarningBlips()
+      expect(count - previousCount).toBe(expectedDelta)
+      previousCount = count
+    }
+
+    // The T-10 step (the loop's first iteration, now=C2-10s) is exactly
+    // c2's default 10s critical lead instant too — both fire together.
+    expect(speak).toHaveBeenCalledWith('Filter off. Filter off. Shoot the diamond ring.')
+
+    // One more tick reaches c2's own due instant (now=C2): the sweep plays
+    // instead of the standard critical-due cue, while burst-1's own T-5
+    // warning (unrelated to c2) still legitimately fires alongside it.
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+    expect(countWarningBlips() - previousCount).toBe(1)
+    expect(playTone).toHaveBeenCalledWith('filter-toggle')
+    expect(playTone).not.toHaveBeenCalledWith('critical-due')
+
+    const scrollCallsAtC2 = Element.prototype.scrollIntoView.mock.calls.length
+
+    // Advance clear through the rest of the totality sequence (C2 -> c3,
+    // ~2m3s) one second at a time, with no simulated manual scroll anywhere
+    // in this test — auto-scroll must retarget on its own as the active card
+    // advances through all nine totality steps. One-second steps (rather
+    // than a single large jump) are deliberate: React 18 automatic batching
+    // coalesces every state update inside one `act()` callback into a single
+    // render, so a single multi-minute jump would only ever observe the
+    // *final* active card, silently skipping every intermediate totality
+    // step's own retarget.
+    const totalitySpanMs = Date.parse(C3) - Date.parse(C2) + 1000
+    for (let elapsed = 0; elapsed < totalitySpanMs; elapsed += 1000) {
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+    }
+
+    // 9 transitions from c2 through to c3 (10 totality-block cards total),
+    // each gap between anchors well over the 1s retarget throttle, so each
+    // must produce its own retarget — an exact count, not a loose floor.
+    expect(Element.prototype.scrollIntoView.mock.calls.length).toBe(scrollCallsAtC2 + 9)
+    expect(screen.queryByText('↓ NOW')).not.toBeInTheDocument()
   })
 })
 

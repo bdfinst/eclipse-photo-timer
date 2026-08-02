@@ -6,12 +6,34 @@
  * modules are cached on first import, so every importer shares this exact
  * instance and observes the same rehearsal state automatically.
  *
- * Rehearsal/virtual-clock state lives only in this module's in-memory
- * closure — it is never written to storage.js, so it can never outlive a
- * page load.
+ * The virtual clock's position and rate (_virtual/_speed/_startedAt) live
+ * only in this module's in-memory closure — never written to storage.js,
+ * so they can never outlive a page load. The operator's *selected*
+ * rehearsal speed (REHEARSAL_SPEED_KEY below) is a UI preference, not part
+ * of that in-memory state, and DOES persist across reloads — callers must
+ * read it only while `isRehearsal()` is true (see useAnnouncements.js),
+ * since nothing clears it on exiting rehearsal.
  */
 
-import { getItem } from './storage.js'
+import { getItem, setItem } from './storage.js'
+
+// Rehearsal speed selection persists across rerenders/mounts the same way
+// the audio settings do (audio.js's AUDIO_MASTER_KEY etc.) — canonical home
+// here since this is the clock's own rehearsal concept, read fresh by
+// RehearsalPanel.jsx (UI) and useAnnouncements.js (speech-gating) alike.
+// Deliberately NOT a clockService method (spec §8's ClockService interface
+// is exactly now/isRehearsal/setVirtual/clearVirtual, no speed getter).
+export const REHEARSAL_SPEED_KEY = 'eclipse.rehearsalSpeed'
+
+/** Reads the persisted rehearsal speed, defaulting to 1x on anything malformed. */
+export function getRehearsalSpeed() {
+  const raw = getItem(REHEARSAL_SPEED_KEY, 1)
+  return Number.isFinite(raw) ? raw : 1
+}
+
+export function setRehearsalSpeed(speed) {
+  setItem(REHEARSAL_SPEED_KEY, speed)
+}
 
 let _virtual = null
 let _speed = 1

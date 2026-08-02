@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PrepScreen from './PrepScreen.jsx'
 import { C2 } from '../data/timeline.js'
 import { setItem } from '../services/storage.js'
+import { clockService } from '../services/clock.js'
 
 const ONE_H_23_M_45_S_MS = ((1 * 60 + 23) * 60 + 45) * 1000
 
@@ -118,5 +119,30 @@ describe('PrepScreen settings composition', () => {
     render(<PrepScreen />)
 
     expect(screen.getByRole('button', { name: '+10s' })).toBeInTheDocument()
+  })
+})
+
+describe('PrepScreen rehearsal banner (spec §8)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    clockService.clearVirtual()
+  })
+
+  it('shows no banner when rehearsal is off, and the striped banner once toggled on', () => {
+    render(<PrepScreen />)
+
+    expect(screen.queryByText('REHEARSAL — NOT LIVE')).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByLabelText('Rehearsal mode'))
+    act(() => {
+      vi.advanceTimersByTime(250)
+    })
+
+    expect(screen.getByText('REHEARSAL — NOT LIVE')).toBeInTheDocument()
   })
 })
