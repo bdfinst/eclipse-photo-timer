@@ -1,14 +1,16 @@
 /**
- * Camera-settings reference — transcribed verbatim from the operator's
- * field card (Eclipse_2026_OM1_Field_Card_4.pdf, page 1, "CAMERA
- * SETTINGS"). Wording and numbers are the card's own; do not reformat the
- * values. The exposure ladder DERIVATIONS (page 3's Espenak Q table) and
+ * Camera-settings reference — transcribed from the operator's field card
+ * (Eclipse_2026_OM1_Field_Card_4.pdf, page 1, "CAMERA SETTINGS"), as
+ * amended by the fixed-focal change request
+ * (eclipse-timer-CHANGE-fixed-focal.md): zoom locked at the 500 mark,
+ * constant f/13, every exposure shifted ⅓ stop. Numbers are the change
+ * request's own — do not recompute them. The exposure ladder DERIVATIONS (page 3's Espenak Q table) and
  * rig/power notes (page 2) are deliberately not included here — this is
  * the in-field settings reference, not the planning document.
  */
 
 export const RIG_SUMMARY =
-  'OM-1 · 150-600 + MC-20 always on = 300–1200mm true, f/10–f/13 · SafeSight ND 5.0'
+  'OM-1 · 150-600 + MC-20 · LOCKED at the 500 mark = 1000mm true, f/13 · SafeSight ND 5.0'
 
 /** @type {{ label: string, value: string }[]} */
 export const GLOBAL_SETTINGS = [
@@ -52,7 +54,7 @@ export const CUSTOM_MODES = [
     id: 'c1',
     title: 'Dial C1 — Partial phases',
     tagline: 'filter on · both timer runs and the hand-flown minutes',
-    headline: 'ISO 200 · 1/400 · Single drive',
+    headline: 'ISO 200 · 1/320 · Single drive',
     notes:
       'Expose off the RGB histogram, not luminance. Ramp +½ stop at the 17:42 handover and +1 stop in the last minute before C2 — only the limb is left, ~1.5 stops darker than disk centre. Mirror after C3.',
   },
@@ -60,33 +62,33 @@ export const CUSTOM_MODES = [
     id: 'c2',
     title: 'Dial C2 — Totality bracket',
     tagline: 'the mode that matters · correct at every focal length',
-    headline: 'ISO 200 · base 1/50 · Menu › Shooting 2 › HDR › 7f 2.0EV',
+    headline: 'ISO 200 · base 1/40 · Menu › Shooting 2 › HDR › 7f 2.0EV',
     ladder: [
-      { ev: '−6 EV', shutter: '1/3200', subject: 'chromosphere' },
-      { ev: '−4 EV', shutter: '1/800', subject: 'prominences' },
-      { ev: '−2 EV', shutter: '1/200', subject: 'corona 0.1 Rs' },
-      { ev: 'BASE', shutter: '1/50', subject: '0.2 Rs + diamond', base: true },
-      { ev: '+2 EV', shutter: '1/13', subject: 'corona 0.5 Rs' },
-      { ev: '+4 EV', shutter: '0.3"', subject: 'corona 1.0 Rs' },
-      { ev: '+6 EV', shutter: '1.3"', subject: 'corona 4.0 Rs' },
+      { ev: '−6 EV', shutter: '1/2500', subject: 'chromosphere' },
+      { ev: '−4 EV', shutter: '1/640', subject: 'prominences' },
+      { ev: '−2 EV', shutter: '1/160', subject: 'corona 0.1 Rs' },
+      { ev: 'BASE', shutter: '1/40', subject: '0.2 Rs + diamond', base: true },
+      { ev: '+2 EV', shutter: '1/10', subject: 'corona 0.5 Rs' },
+      { ev: '+4 EV', shutter: '0.4"', subject: 'corona 1.0 Rs' },
+      { ev: '+6 EV', shutter: '1.6"', subject: 'corona 4.0 Rs' },
     ],
     notes:
-      'One press, seven RAWs, ~1 s. Not HDR1/HDR2 — those merge to JPEG and lock ISO. Aperture moves only f/10→f/13 across the zoom range, so this is right at every focal length. Nothing to re-dial — just zoom.',
+      'One press, seven RAWs, about two seconds. Not HDR1/HDR2 — those merge to JPEG and lock ISO. The zoom never moves, so nothing is ever re-dialled.',
   },
   {
     id: 'c3',
     title: 'Dial C3 — Outer corona & earthshine',
-    tagline: 'picks up where C2 stops · shoot at zoom 250',
-    headline: 'ISO 1600 · base 1/6 · Menu › Shooting 2 › HDR › 5f 2.0EV',
+    tagline: 'picks up where C2 stops · three attempts inside totality',
+    headline: 'ISO 1600 · base 1/5 · Menu › Shooting 2 › HDR › 5f 2.0EV',
     ladder: [
-      { ev: '−4 EV', shutter: '1/100', subject: 'corona 0.5 Rs' },
-      { ev: '−2 EV', shutter: '1/25', subject: 'corona 1.0 Rs' },
-      { ev: 'BASE', shutter: '1/6', subject: 'corona 4.0 Rs', base: true },
-      { ev: '+2 EV', shutter: '0.6"', subject: 'corona 8.0 Rs' },
-      { ev: '+4 EV', shutter: '2.5"', subject: 'earthshine' },
+      { ev: '−4 EV', shutter: '1/80', subject: 'corona 0.5 Rs' },
+      { ev: '−2 EV', shutter: '1/20', subject: 'corona 1.0 Rs' },
+      { ev: 'BASE', shutter: '1/5', subject: 'corona 4.0 Rs', base: true },
+      { ev: '+2 EV', shutter: '0.8"', subject: 'corona 8.0 Rs' },
+      { ev: '+4 EV', shutter: '3.2"', subject: 'earthshine' },
     ],
     notes:
-      'Same 2 EV step as C2 — one press, ~3 s of shutter. C2 bottoms out at Q = −1; this carries the ladder four stops further, to Q = −5. Earthshine is a stretch goal — the inner corona swamps the disk.',
+      'Same 2 EV step as C2 — one press, five RAWs out to 3.2 seconds. C2 bottoms out at Q = −1; this carries the ladder four stops further, to Q = −5. Three attempts are scheduled inside totality; do not touch the rig while a burst runs.',
   },
   {
     id: 'c4',

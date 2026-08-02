@@ -11,12 +11,12 @@ export const FAR_FUTURE_SECONDS = 30 * 60
 export const TOTALITY_BLOCK_IDS = [
   'c2',
   'burst-1',
+  'earth-1',
   'burst-2',
-  'zoom',
-  'burst-3',
-  'earthshine',
+  'earth-2',
   'lookup',
-  'burst-4',
+  'burst-3',
+  'earth-3',
   'arm-c3',
   'c3',
 ]

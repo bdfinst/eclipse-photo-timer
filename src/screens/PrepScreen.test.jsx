@@ -182,30 +182,32 @@ describe('PrepScreen reference card', () => {
   it('is hidden until opened from the menu, then shows the exposure ladder text', () => {
     render(<PrepScreen />)
 
-    expect(screen.queryByText(/Bracket \(C2\)/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/C2 bracket/)).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Reference card' }))
 
+    // The fixed-focal change request's accordion block, verbatim (f/13 —
+    // do not recompute). Testing Library's normalizer collapses runs of
+    // whitespace to a single space before matching.
+    expect(
+      screen.getByText('Zoom LOCKED at the 500 mark all day — 1000mm true, f/13. Never changes.'),
+    ).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Bracket (C2): base 1/50 → 1/3200 · 1/800 · 1/200 · 1/50 · 1/13 · 0.3" · 1.3"',
+        'C2 bracket (base 1/40): 1/2500 · 1/640 · 1/160 · 1/40 · 1/10 · 0.4" · 1.6"',
       ),
     ).toBeInTheDocument()
-    // Testing Library's default normalizer collapses runs of whitespace in
-    // the rendered text content to a single space before matching — these
-    // two matchers use single spaces for that reason, even though the
-    // source constant (verbatim from spec §5.3) keeps the original spacing.
     expect(
-      screen.getByText('Partial (C1, filter on): 1/400 | Diamond ring (C4): 1/2500'),
-    ).toBeInTheDocument()
-    // C3 line matches the field card v4's 5-frame HDR bracket, which
-    // superseded the spec's earlier manual earthshine sweep.
-    expect(
-      screen.getByText('Outer corona (C3, ISO 1600): base 1/6 → 1/100 · 1/25 · 1/6 · 0.6" · 2.5"'),
+      screen.getByText(
+        'C3 bracket (base 1/5): 1/80 · 1/20 · 1/5 · 0.8" · 3.2" ← 3.2" is the earthshine frame',
+      ),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('Zoom 250 = corona (2.8 × 3.8 Rs) · Zoom 500 = prominences (1.4 × 1.9 Rs)'),
+      screen.getByText('Partial (C1, filter on): 1/320 | Diamond ring (C4): 1/2500'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Frame at 1000mm: sun fills 71% of height, corona to 1.4 × 1.9 Rs.'),
     ).toBeInTheDocument()
   })
 
@@ -280,12 +282,13 @@ describe('PrepScreen setup status', () => {
   })
 
   it('shows the rounded per-section percentage for partially-checked groups', () => {
-    // 1 of the 10 "night before" items — 10%; other groups untouched.
+    // 1 of the 8 "night before" items (parfocality and the 250 zoom-mark
+    // items were removed by the fixed-focal change) — 12.5% rounds to 13%.
     setItem('eclipse.checklist', { 'night-battery': true })
 
     render(<PrepScreen />)
 
-    expect(screen.getByText('10%')).toBeInTheDocument()
+    expect(screen.getByText('13%')).toBeInTheDocument()
     expect(screen.getAllByText('0%')).toHaveLength(3)
   })
 

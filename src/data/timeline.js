@@ -1,6 +1,8 @@
 /**
- * Eclipse timeline event data — transcribed verbatim from eclipse-timer-spec.md §4.2.
- * Do not recompute or "improve" the times.
+ * Eclipse timeline event data — transcribed verbatim from eclipse-timer-spec.md §4.2,
+ * as amended by the fixed-focal change request (eclipse-timer-CHANGE-fixed-focal.md):
+ * zoom locked at the 500 mark, no mid-totality zoom event, three earthshine
+ * bursts, f/13 exposure values. Do not recompute or "improve" the times.
  *
  * @typedef {'prep'|'partial-1'|'handover-in'|'totality'|'handover-out'|'partial-2'|'done'} Phase
  */
@@ -41,7 +43,7 @@ export const EVENTS = [
     filterOn: true,
     title: 'Set up and polar align',
     detail:
-      'Tripod level, GTi on solar rate in SynScan, payload balanced at the 250 zoom mark, camera-heavy.',
+      'Tripod level, GTi on solar rate in SynScan, payload balanced at the 500 zoom mark, camera-heavy.',
   },
 
   {
@@ -53,7 +55,7 @@ export const EVENTS = [
     filterOn: true,
     title: 'Focus and lock',
     detail:
-      'Filter on. Zoom 250. Focus a sunspot at 14× magnified live view, then Focus Ring Lock and tape the ring.',
+      'Filter on. Zoom to the 500 mark and tape the ring — it does not move again today. Focus a sunspot at 14× magnified live view, then Focus Ring Lock and tape the focus ring too.',
   },
 
   {
@@ -65,7 +67,7 @@ export const EVENTS = [
     filterOn: true,
     title: 'Dry run the totality bracket',
     detail:
-      'Fire one dial-C2 burst at the filtered sun. Confirm seven RAWs land, including the 1.3-second frame.',
+      'Fire one dial-C2 burst at the filtered sun. Confirm seven RAWs land, including the 1.6-second frame.',
   },
 
   {
@@ -159,10 +161,9 @@ export const EVENTS = [
     mode: 'C4',
     critical: true,
     filterOn: true,
-    title: 'Final check — zoom 500, hand on the filter',
-    speak: 'Final check. Zoom five hundred. Hand on the filter.',
-    detail:
-      'Sun centred, camera awake, MF locked, dial C4 armed, ProCap half-pressed. Thirty seconds.',
+    title: 'Final check — hand on the filter',
+    speak: 'Final check. Hand on the filter. Thirty seconds.',
+    detail: 'Sun centred, camera awake, MF locked, dial C4 armed, ProCap half-pressed.',
   },
 
   // ---------- totality ----------
@@ -180,94 +181,95 @@ export const EVENTS = [
 
   {
     id: 'burst-1',
-    at: '2026-08-12T17:46:15Z',
+    at: '2026-08-12T17:46:16Z',
     phase: 'totality',
     mode: 'C2',
     critical: true,
     filterOn: false,
     title: 'Bracket burst 1',
-    detail: 'Tight at zoom 500 — chromosphere and prominences.',
+    detail: 'Chromosphere and prominences. Seven RAWs, about two seconds.',
+  },
+
+  {
+    id: 'earth-1',
+    at: '2026-08-12T17:46:26Z',
+    phase: 'totality',
+    mode: 'C3',
+    critical: true,
+    filterOn: false,
+    title: 'Earthshine burst 1',
+    speak: 'C three. Earthshine burst one.',
+    detail: 'Five RAWs out to 3.2 seconds. Do not touch the rig while it runs.',
   },
 
   {
     id: 'burst-2',
-    at: '2026-08-12T17:46:25Z',
+    at: '2026-08-12T17:46:38Z',
     phase: 'totality',
     mode: 'C2',
     critical: true,
     filterOn: false,
     title: 'Bracket burst 2',
-    detail: 'Second look at the prominences.',
+    detail: 'Second pass at the inner corona.',
   },
 
   {
-    id: 'zoom',
-    at: '2026-08-12T17:46:40Z',
-    phase: 'totality',
-    mode: null,
-    critical: true,
-    filterOn: false,
-    title: 'ZOOM BACK TO 250',
-    speak: 'Zoom back to two fifty. Recentre.',
-    detail:
-      'Pull to the taped mark. Recentre. If it fights you, abandon it and keep shooting tight.',
-  },
-
-  {
-    id: 'burst-3',
+    id: 'earth-2',
     at: '2026-08-12T17:46:48Z',
     phase: 'totality',
-    mode: 'C2',
+    mode: 'C3',
     critical: true,
     filterOn: false,
-    title: 'Bracket burst 3 — the corona',
-    detail: 'This is the picture.',
-  },
-
-  {
-    id: 'earthshine',
-    at: '2026-08-12T17:46:56Z',
-    phase: 'totality',
-    mode: 'C3',
-    critical: false,
-    filterOn: false,
-    title: 'Outer corona / earthshine',
-    detail: 'ISO 1600. Sweep 1.3s, 2.5s, 5s. Stretch goal — do not overrun.',
+    title: 'Earthshine burst 2',
+    speak: 'C three. Earthshine burst two.',
+    detail: 'Second of three. Recentre first if the disk has drifted.',
   },
 
   {
     id: 'lookup',
-    at: '2026-08-12T17:47:10Z',
+    at: '2026-08-12T17:47:02Z',
     phase: 'totality',
     mode: null,
     critical: true,
     filterOn: false,
     title: 'HANDS OFF — LOOK UP',
-    speak: 'Hands off. Look up. Twenty five seconds.',
+    speak: 'Hands off. Look up. Thirty three seconds.',
     detail: 'This is the whole point. Do not touch the camera.',
   },
 
   {
-    id: 'burst-4',
+    id: 'burst-3',
     at: '2026-08-12T17:47:35Z',
     phase: 'totality',
     mode: 'C2',
     critical: true,
     filterOn: false,
-    title: 'Bracket burst 4 — corona',
-    detail: 'Recentre first; the sun has drifted west.',
+    title: 'Bracket burst 3',
+    detail: 'Recentre first — the sun has drifted west.',
+  },
+
+  {
+    id: 'earth-3',
+    at: '2026-08-12T17:47:45Z',
+    phase: 'totality',
+    mode: 'C3',
+    critical: true,
+    filterOn: false,
+    title: 'Earthshine burst 3 — last one',
+    speak: 'C three. Last earthshine burst.',
+    detail: 'Final attempt. Let it finish, then go straight to C4.',
   },
 
   {
     id: 'arm-c3',
-    at: '2026-08-12T17:47:50Z',
+    at: '2026-08-12T17:47:58Z',
     phase: 'totality',
     mode: 'C4',
     critical: true,
     filterOn: false,
-    title: 'Arm for third contact',
+    title: 'Arm for 3rd contact',
     speak: 'Arm for third contact. Watch the west limb.',
-    detail: 'Still at 250. Beads first, then the diamond ring with the full corona around it.',
+    detail: 'Beads first, then the diamond ring.',
   },
 
   // ---------- egress ----------
@@ -278,7 +280,7 @@ export const EVENTS = [
     mode: 'C1',
     critical: true,
     filterOn: true,
-    title: 'FILTER BACK ON — eyes away',
+    title: 'FILTER ON — eyes away',
     speak: 'Filter on. Filter on now. Eyes away.',
     detail: 'Third contact. Filter on before the first bead, not after. Then back to +1 stop.',
   },
@@ -301,8 +303,8 @@ export const EVENTS = [
     mode: 'C1',
     critical: false,
     filterOn: true,
-    title: 'Back to base exposure — 1/400',
-    detail: 'Reset for the second timer run. Confirm zoom is still 250 so the clips match.',
+    title: 'Back to base exposure — 1/320',
+    detail: 'Back to base, 1/320. Confirm the zoom tape is still intact.',
   },
 
   {

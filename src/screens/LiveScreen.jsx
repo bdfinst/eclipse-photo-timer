@@ -130,6 +130,13 @@ function LiveScreen({ initialAudioStatus = 'pending', onBack }) {
       )}
       <div ref={liveContentRef} data-testid="live-content" tabIndex={-1}>
         <FilterBanner filterOn={filterOn} />
+        {/* Fixed-focal reassurance strip (change request §5): deliberately
+            quiet — it never changes state. Its one job is answering "am I
+            supposed to be doing something with the lens?" mid-totality
+            without the operator having to think. */}
+        <p className="px-3 py-1 text-center font-mono text-[0.65rem] tracking-[0.3em] text-dim">
+          ZOOM 500 · f/13 · LOCKED
+        </p>
         <p>
           {formatUtcTime(now)}
           {offsetAnnotation && <span> {offsetAnnotation}</span>}

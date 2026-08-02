@@ -252,12 +252,12 @@ describe('LiveScreen audio unlock failure warning', () => {
 const TOTALITY_BLOCK_IDS = [
   'c2',
   'burst-1',
+  'earth-1',
   'burst-2',
-  'zoom',
-  'burst-3',
-  'earthshine',
+  'earth-2',
   'lookup',
-  'burst-4',
+  'burst-3',
+  'earth-3',
   'arm-c3',
   'c3',
 ]
@@ -401,10 +401,10 @@ describe('LiveScreen auto-scroll wiring', () => {
   })
 
   it('still scrolls the active card into view when it is inside the totality compact block, not the regular list', () => {
-    // burst-2 (17:46:25Z, active until zoom at 17:46:40Z) IS one of the totality-block ids —
+    // burst-2 (17:46:38Z, active until earth-2 at 17:46:48Z) IS one of the totality-block ids —
     // the block renders it, not the regular scrolling list, so the ref that
     // drives auto-scroll must be wired there instead.
-    vi.setSystemTime(Date.parse('2026-08-12T17:46:35Z'))
+    vi.setSystemTime(Date.parse('2026-08-12T17:46:40Z'))
 
     render(<LiveScreen />)
 
@@ -551,12 +551,12 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
 
     // Advance second-by-second from T-10 through T-1, confirming a NEW
     // critical-warning blip fires at every one of the ten steps — an EXACT
-    // per-step delta, not just "greater than before": burst-1 (5s after c2)
-    // starts its own T-10..T-1 warning window at c2's own T-5, so from that
+    // per-step delta, not just "greater than before": burst-1 (6s after c2)
+    // starts its own T-10..T-1 warning window at c2's own T-4, so from that
     // point on each tick legitimately carries two blips (c2's own plus
     // burst-1's), and a c2-specific regression hiding behind burst-1's
     // contribution would slip past a looser ">0" check.
-    const EXPECTED_WARNING_DELTAS = [1, 1, 1, 1, 1, 2, 2, 2, 2, 2]
+    const EXPECTED_WARNING_DELTAS = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2]
 
     function countWarningBlips() {
       return playTone.mock.calls.filter(([cue]) => cue === 'critical-warning').length
@@ -577,7 +577,7 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
     expect(speak).toHaveBeenCalledWith('Filter off. Filter off. Shoot the diamond ring.')
 
     // One more tick reaches c2's own due instant (now=C2): the sweep plays
-    // instead of the standard critical-due cue, while burst-1's own T-5
+    // instead of the standard critical-due cue, while burst-1's own T-6
     // warning (unrelated to c2) still legitimately fires alongside it.
     act(() => {
       vi.advanceTimersByTime(1000)
@@ -609,6 +609,15 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
     // must produce its own retarget — an exact count, not a loose floor.
     expect(Element.prototype.scrollIntoView.mock.calls.length).toBe(scrollCallsAtC2 + 9)
     expect(screen.queryByText('↓ NOW')).not.toBeInTheDocument()
+
+    // Fixed-focal change request §7: the run speaks all three earthshine
+    // calls distinctly, and no zoom prompt exists anywhere in it.
+    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst one.')
+    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst two.')
+    expect(speak).toHaveBeenCalledWith('C three. Last earthshine burst.')
+    for (const [spoken] of speak.mock.calls) {
+      expect(spoken).not.toMatch(/[Zz]oom/)
+    }
   })
 })
 

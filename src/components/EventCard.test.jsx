@@ -120,10 +120,10 @@ describe('EventCard content', () => {
   })
 
   it('renders a T+ label for an event after C2', () => {
-    // burst-1 is 2026-08-12T17:46:15Z, exactly 5s after C2.
-    renderCard({ at: '2026-08-12T17:46:15Z' }, 'active')
+    // burst-1 is 2026-08-12T17:46:16Z, exactly 6s after C2.
+    renderCard({ at: '2026-08-12T17:46:16Z' }, 'active')
 
-    expect(screen.getByText('T+ 00:00:05')).toBeInTheDocument()
+    expect(screen.getByText('T+ 00:00:06')).toBeInTheDocument()
   })
 })
 

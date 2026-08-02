@@ -7,14 +7,14 @@ import { POWER, ZOOM_MARKS } from '../data/rigReference.js'
 // module — a circular oracle couldn't catch a transcription typo slipping
 // into the data. Source: the operator's field card, page 2.
 describe('RigReference', () => {
-  it('renders both zoom marks with their optics and purpose', () => {
+  it('renders the single locked zoom mark — the 250 corona mark is gone with the fixed focal', () => {
     render(<RigReference />)
 
-    expect(ZOOM_MARKS.marks.map((mark) => mark.barrel)).toEqual(['250', '500'])
-    expect(screen.getByText('250 — Corona — all day except the two ends')).toBeInTheDocument()
-    expect(screen.getByText('500mm true · 1000mm FF · 2.8 × 3.8 Rs in frame')).toBeInTheDocument()
-    expect(screen.getByText('500 — Prominences — 17:45:40–17:46:40 only')).toBeInTheDocument()
+    expect(ZOOM_MARKS.marks.map((mark) => mark.barrel)).toEqual(['500'])
+    expect(screen.getByText('500 — LOCKED all day — never changes')).toBeInTheDocument()
     expect(screen.getByText('1000mm true · 2000mm FF · 1.4 × 1.9 Rs in frame')).toBeInTheDocument()
+    expect(screen.queryByText(/250 —/)).not.toBeInTheDocument()
+    expect(screen.getByText(/Zoom to the 500 mark and tape it/)).toBeInTheDocument()
   })
 
   it('renders the timer program headline', () => {

@@ -17,10 +17,10 @@ const toMs = (iso) => Date.parse(iso)
 //     active="setup", not "none" as the plan's table states. Moved to
 //     15:00:00Z (genuinely before the first event) to match the table's
 //     stated active=none/next=setup/filterOn=true intent.
-//   - row 4: the plan's now of 17:46:20Z falls AFTER "burst-1" (17:46:15Z),
+//   - row 4: the plan's now of 17:46:20Z falls AFTER "burst-1" (17:46:16Z),
 //     so a correct boundary search would report active="burst-1", not "c2"
 //     as the plan's table states. Moved to 17:46:12Z (between c2's
-//     17:46:10Z and burst-1's 17:46:15Z) to match the table's stated
+//     17:46:10Z and burst-1's 17:46:16Z) to match the table's stated
 //     active=c2/next=burst-1/filterOn=false intent.
 // Both corrections preserve the plan's intended active/next/filterOn
 // values; only the "now" instant was adjusted to be reachable by a
@@ -30,7 +30,7 @@ const scenarios = [
   ['2026-08-12T16:50:00Z', 'c1', 'check-1', true],
   ['2026-08-12T17:43:00Z', 'handover-in', 'ramp-full', true],
   ['2026-08-12T17:46:12Z', 'c2', 'burst-1', false],
-  ['2026-08-12T17:47:20Z', 'lookup', 'burst-4', false],
+  ['2026-08-12T17:47:20Z', 'lookup', 'burst-3', false],
   ['2026-08-12T17:48:20Z', 'c3', 'ramp-down-1', true],
   ['2026-08-12T18:50:00Z', 'c4', null, true],
 ]

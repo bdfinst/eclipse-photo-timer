@@ -1,8 +1,11 @@
 /**
- * Rig reference — transcribed verbatim from the operator's field card
+ * Rig reference — transcribed from the operator's field card
  * (Eclipse_2026_OM1_Field_Card_4.pdf, page 2, "RIG — LENS, TIMER, MOUNT,
- * POWER"). Wording and numbers are the card's own; do not reformat the
- * values. Camera settings are src/data/cameraSettings.js (page 1); the
+ * POWER"), as amended by the fixed-focal change request
+ * (eclipse-timer-CHANGE-fixed-focal.md): the zoom is locked at the 500
+ * mark all day, so the 250 corona mark and the mid-totality zoom change
+ * are gone. Remaining wording and numbers are the card's own — do not
+ * reformat the values. Camera settings are src/data/cameraSettings.js (page 1); the
  * timeline (page 4) is the app's own live screen.
  */
 
@@ -10,22 +13,15 @@ export const ZOOM_MARKS = {
   tagline: 'TC is always on, so double the barrel',
   marks: [
     {
-      barrel: '250',
-      trueFocal: '500mm',
-      ffEquiv: '1000mm',
-      coronaInFrame: '2.8 × 3.8 Rs',
-      useFor: 'Corona — all day except the two ends',
-    },
-    {
       barrel: '500',
       trueFocal: '1000mm',
       ffEquiv: '2000mm',
       coronaInFrame: '1.4 × 1.9 Rs',
-      useFor: 'Prominences — 17:45:40–17:46:40 only',
+      useFor: 'LOCKED all day — never changes',
     },
   ],
   notes:
-    'Tape a mark at 250 to find it by feel. Friction collar to T. Rotate the body so the streamers run along the long axis.',
+    'Zoom to the 500 mark and tape it — it does not move again today. Friction collar to T. Rotate the body so the streamers run along the long axis.',
 }
 
 export const TIMER = {
@@ -38,7 +34,7 @@ export const TIMER = {
 export const MOUNT = {
   tagline: 'Star Adventurer GTi',
   notes:
-    'Polar align before first contact. Solar tracking rate in SynScan. Balance at the 250 mark, camera-heavy so the RA drive stays loaded against one side of the backlash. Dec creeps ~1.5′ over two hours = 3% of frame height — leave it alone; recentring mid-run puts a jump in the time-lapse. Fallback if power fails: 8×AA lithium in the mount (9.0–12.6 V).',
+    'Polar align before first contact. Solar tracking rate in SynScan. Balance at the 500 mark, camera-heavy so the RA drive stays loaded against one side of the backlash. Dec creeps ~1.5′ over two hours = 3% of frame height — leave it alone; recentring mid-run puts a jump in the time-lapse. Fallback if power fails: 8×AA lithium in the mount (9.0–12.6 V).',
 }
 
 // The card itself writes both "Sharge 170" (heading) and "Shargeek 170"

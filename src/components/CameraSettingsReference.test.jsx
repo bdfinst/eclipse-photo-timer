@@ -12,7 +12,7 @@ describe('CameraSettingsReference', () => {
 
     expect(
       screen.getByText(
-        'OM-1 · 150-600 + MC-20 always on = 300–1200mm true, f/10–f/13 · SafeSight ND 5.0',
+        'OM-1 · 150-600 + MC-20 · LOCKED at the 500 mark = 1000mm true, f/13 · SafeSight ND 5.0',
       ),
     ).toBeInTheDocument()
   })
@@ -33,14 +33,14 @@ describe('CameraSettingsReference', () => {
     render(<CameraSettingsReference />)
 
     expect(screen.getByText('Dial C1 — Partial phases')).toBeInTheDocument()
-    expect(screen.getByText('ISO 200 · 1/400 · Single drive')).toBeInTheDocument()
+    expect(screen.getByText('ISO 200 · 1/320 · Single drive')).toBeInTheDocument()
     expect(screen.getByText('Dial C2 — Totality bracket')).toBeInTheDocument()
     expect(
-      screen.getByText('ISO 200 · base 1/50 · Menu › Shooting 2 › HDR › 7f 2.0EV'),
+      screen.getByText('ISO 200 · base 1/40 · Menu › Shooting 2 › HDR › 7f 2.0EV'),
     ).toBeInTheDocument()
     expect(screen.getByText('Dial C3 — Outer corona & earthshine')).toBeInTheDocument()
     expect(
-      screen.getByText('ISO 1600 · base 1/6 · Menu › Shooting 2 › HDR › 5f 2.0EV'),
+      screen.getByText('ISO 1600 · base 1/5 · Menu › Shooting 2 › HDR › 5f 2.0EV'),
     ).toBeInTheDocument()
     expect(screen.getByText("Dial C4 — Diamond ring / Baily's beads")).toBeInTheDocument()
     expect(screen.getByText('ISO 200 · 1/2500 · ProCap SH2')).toBeInTheDocument()
@@ -50,10 +50,10 @@ describe('CameraSettingsReference', () => {
   // unambiguous with getByText. The literal arrays double as both the data
   // oracle (toEqual) and the render oracle (every row asserted on screen —
   // a dropped middle row must fail, not just the endpoints).
-  const C2_SHUTTERS = ['1/3200', '1/800', '1/200', '1/50', '1/13', '0.3"', '1.3"']
-  const C3_SHUTTERS = ['1/100', '1/25', '1/6', '0.6"', '2.5"']
+  const C2_SHUTTERS = ['1/2500', '1/640', '1/160', '1/40', '1/10', '0.4"', '1.6"']
+  const C3_SHUTTERS = ['1/80', '1/20', '1/5', '0.8"', '3.2"']
 
-  it("renders C2's full seven-frame ladder from 1/3200 to 1.3 seconds", () => {
+  it("renders C2's full seven-frame ladder from 1/2500 to 1.6 seconds", () => {
     render(<CameraSettingsReference />)
 
     const c2 = CUSTOM_MODES.find((mode) => mode.id === 'c2')

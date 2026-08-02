@@ -13,15 +13,15 @@ import SettingsPanel from '../components/SettingsPanel.jsx'
 import RehearsalPanel, { RehearsalBanner } from '../components/RehearsalPanel.jsx'
 import RigReference from '../components/RigReference.jsx'
 
-// Originally verbatim from eclipse-timer-spec.md §5.3 — do not reformat the
-// numbers. The C3 line was updated to the operator's field card v4
-// (src/data/cameraSettings.js), which supersedes the spec's earlier manual
-// earthshine sweep (1.3"/2.5"/5") with a single 5-frame HDR bracket.
+// Verbatim from the fixed-focal change request (§4, "reference-card
+// accordion") — computed for f/13, locked at the 500 mark. Do not
+// recompute or reformat the numbers.
 const REFERENCE_CARD_LINES = [
-  'Bracket (C2): base 1/50 → 1/3200 · 1/800 · 1/200 · 1/50 · 1/13 · 0.3" · 1.3"',
-  'Partial (C1, filter on): 1/400   |   Diamond ring (C4): 1/2500',
-  'Outer corona (C3, ISO 1600): base 1/6 → 1/100 · 1/25 · 1/6 · 0.6" · 2.5"',
-  'Zoom 250 = corona (2.8 × 3.8 Rs)  ·  Zoom 500 = prominences (1.4 × 1.9 Rs)',
+  'Zoom LOCKED at the 500 mark all day — 1000mm true, f/13. Never changes.',
+  'C2 bracket (base 1/40): 1/2500 · 1/640 · 1/160 · 1/40 · 1/10 · 0.4" · 1.6"',
+  'C3 bracket (base 1/5): 1/80 · 1/20 · 1/5 · 0.8" · 3.2"  ← 3.2" is the earthshine frame',
+  'Partial (C1, filter on): 1/320   |   Diamond ring (C4): 1/2500',
+  'Frame at 1000mm: sun fills 71% of height, corona to 1.4 × 1.9 Rs.',
 ]
 
 const C2_MS = Date.parse(C2)

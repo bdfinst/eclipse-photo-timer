@@ -33,7 +33,7 @@ export const CHECKLIST_GROUPS = [
       { id: 'night-card', text: 'Format a 64 GB+ UHS-II card, in slot 1' },
       {
         id: 'night-hdr-bracket',
-        text: 'Confirm HDR bracket 7f 2.0EV fires seven RAWs including the 1.3 s frame',
+        text: 'Confirm HDR bracket 7f 2.0EV fires seven RAWs including the 1.6 s frame',
       },
       { id: 'night-procap', text: 'Confirm ProCap SH2 works with the MC-20 attached' },
       {
@@ -42,13 +42,8 @@ export const CHECKLIST_GROUPS = [
       },
       {
         id: 'night-meter',
-        text: 'Meter the solar filter: 1/400 at ISO 200, f/11 should be correct',
+        text: 'Meter the solar filter: 1/320 at ISO 200, f/13 should be correct',
       },
-      {
-        id: 'night-parfocality',
-        text: 'Check parfocality: focus at zoom 500, pull to 250, inspect at 14×',
-      },
-      { id: 'night-zoom-mark', text: 'Tape a mark on the zoom barrel at 250' },
       {
         id: 'night-clock-offset',
         text: 'Set the clock offset in this app while you still have signal',
@@ -61,15 +56,15 @@ export const CHECKLIST_GROUPS = [
     items: [
       {
         id: 'camera-c1',
-        text: 'C1 — M, wide open, ISO 200, 1/400, Single, silent, RAW, WB 5400K',
+        text: 'C1 — M, wide open (f/13), ISO 200, 1/320, Single drive, silent, RAW, WB 5400K',
       },
       {
         id: 'camera-c2',
-        text: 'C2 — M, wide open, ISO 200, base 1/50, HDR 7f 2.0EV, silent, RAW',
+        text: 'C2 — M, wide open, ISO 200, base 1/40, HDR 7f 2.0EV',
       },
       {
         id: 'camera-c3',
-        text: 'C3 — M, wide open, ISO 1600, manual sweep 1.3 / 2.5 / 5 s',
+        text: 'C3 — M, wide open, ISO 1600, base 1/5, HDR 5f 2.0EV',
       },
       { id: 'camera-c4', text: 'C4 — M, wide open, ISO 200, 1/2500, ProCap SH2' },
       { id: 'camera-iso', text: 'ISO is not Auto' },
@@ -92,7 +87,11 @@ export const CHECKLIST_GROUPS = [
         id: 'site-polar-align',
         text: 'Tripod level, GTi polar aligned, solar tracking rate selected',
       },
-      { id: 'site-balance', text: 'Balanced at the 250 zoom mark, slightly camera-heavy' },
+      { id: 'site-balance', text: 'Balanced at the 500 zoom mark, slightly camera-heavy' },
+      {
+        id: 'site-zoom-taped',
+        text: 'Zoom set to the 500 mark and taped — it does not move again today',
+      },
       { id: 'site-friction-collar', text: 'Zoom friction collar set to T' },
       {
         id: 'site-filter-taped',
