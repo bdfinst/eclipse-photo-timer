@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getItem, setItem } from '../services/storage.js'
+import { CHECKBOX_CLASS, TOGGLE_LABEL_CLASS } from './formClasses.js'
 import {
   AUDIO_CUES,
   AUDIO_MASTER_KEY,
@@ -20,6 +21,9 @@ export const KEEP_AWAKE_KEY = 'eclipse.keepAwakeOn'
 // Longest cue (filter-toggle) runs 600ms (audio.js), so 700ms between cue
 // starts guarantees no overlap between "Test audio"'s sequential cues.
 const TEST_AUDIO_CUE_GAP_MS = 700
+
+const STEPPER_BUTTON_CLASS =
+  'min-h-11 min-w-11 border border-line bg-void px-2 font-mono text-sm text-ink transition-colors hover:border-corona hover:text-corona'
 
 function formatOffset(offsetMs) {
   const seconds = offsetMs / 1000
@@ -90,53 +94,94 @@ function SettingsPanel() {
   }
 
   return (
-    <section>
-      <h2>Settings</h2>
+    <section className="flex flex-col gap-4">
+      {/* The enclosing module's summary row already reads "Settings" — keep
+          the heading for document structure, hidden visually. */}
+      <h2 className="sr-only">Settings</h2>
 
-      <p className="text-3xl font-mono">{formatDeviceTime(deviceTime)}</p>
+      <div className="text-center">
+        <p className="font-mono text-4xl font-medium tabular-nums text-corona">
+          {formatDeviceTime(deviceTime)}
+        </p>
+        <p className="mt-1 font-mono text-[0.65rem] tracking-[0.3em] uppercase text-dim">
+          Device clock · UTC
+        </p>
+      </div>
 
-      <p>
+      <p className="text-sm leading-relaxed text-dim">
         Check against time.is or a GPS clock while you still have signal. Positive offset means the
         app runs ahead of your phone.
       </p>
 
-      <div>
-        <button type="button" onClick={() => adjustOffset(-10000)}>
+      <div className="flex items-center justify-center gap-1.5">
+        <button type="button" className={STEPPER_BUTTON_CLASS} onClick={() => adjustOffset(-10000)}>
           −10s
         </button>
-        <button type="button" onClick={() => adjustOffset(-1000)}>
+        <button type="button" className={STEPPER_BUTTON_CLASS} onClick={() => adjustOffset(-1000)}>
           −1s
         </button>
-        <span>{formatOffset(offsetMs)}</span>
-        <button type="button" onClick={() => adjustOffset(1000)}>
+        <span className="min-w-16 text-center font-mono text-base font-semibold tabular-nums text-corona">
+          {formatOffset(offsetMs)}
+        </span>
+        <button type="button" className={STEPPER_BUTTON_CLASS} onClick={() => adjustOffset(1000)}>
           +1s
         </button>
-        <button type="button" onClick={() => adjustOffset(10000)}>
+        <button type="button" className={STEPPER_BUTTON_CLASS} onClick={() => adjustOffset(10000)}>
           +10s
         </button>
-        <button type="button" onClick={resetOffset}>
+        <button
+          type="button"
+          className="min-h-11 px-2 font-mono text-xs text-dim transition-colors hover:text-corona"
+          onClick={resetOffset}
+        >
           Reset
         </button>
       </div>
 
-      <label>
-        <input type="checkbox" checked={audioMasterOn} onChange={toggleAudioMaster} />
-        Audio master
-      </label>
-      <label>
-        <input type="checkbox" checked={audioVoiceOn} onChange={toggleAudioVoice} />
-        Voice
-      </label>
-      <label>
-        <input type="checkbox" checked={audioTonesOn} onChange={toggleAudioTones} />
-        Tones
-      </label>
-      <label>
-        <input type="checkbox" checked={keepAwakeOn} onChange={toggleKeepAwake} />
-        Keep screen awake
-      </label>
+      <div className="flex flex-col border-y border-line/60">
+        <label className={TOGGLE_LABEL_CLASS}>
+          <input
+            type="checkbox"
+            className={CHECKBOX_CLASS}
+            checked={audioMasterOn}
+            onChange={toggleAudioMaster}
+          />
+          Audio master
+        </label>
+        <label className={TOGGLE_LABEL_CLASS}>
+          <input
+            type="checkbox"
+            className={CHECKBOX_CLASS}
+            checked={audioVoiceOn}
+            onChange={toggleAudioVoice}
+          />
+          Voice
+        </label>
+        <label className={TOGGLE_LABEL_CLASS}>
+          <input
+            type="checkbox"
+            className={CHECKBOX_CLASS}
+            checked={audioTonesOn}
+            onChange={toggleAudioTones}
+          />
+          Tones
+        </label>
+        <label className={TOGGLE_LABEL_CLASS}>
+          <input
+            type="checkbox"
+            className={CHECKBOX_CLASS}
+            checked={keepAwakeOn}
+            onChange={toggleKeepAwake}
+          />
+          Keep screen awake
+        </label>
+      </div>
 
-      <button type="button" onClick={testAudio}>
+      <button
+        type="button"
+        className="min-h-12 border border-corona/60 px-4 font-display text-lg font-medium tracking-[0.25em] uppercase text-corona transition-colors hover:bg-corona hover:text-black"
+        onClick={testAudio}
+      >
         Test audio
       </button>
     </section>

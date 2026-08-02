@@ -13,8 +13,10 @@ describe('vite-plugin-pwa configuration', () => {
     expect(pwaManifest.short_name).toBe('Eclipse')
     expect(pwaManifest.display).toBe('standalone')
     expect(pwaManifest.orientation).toBe('any')
-    expect(pwaManifest.background_color).toBe('#000000')
-    expect(pwaManifest.theme_color).toBe('#000000')
+    // Deep blue-black "void" from the observatory-instrument design system
+    // (src/index.css @theme) — matches index.html's theme-color meta.
+    expect(pwaManifest.background_color).toBe('#05070d')
+    expect(pwaManifest.theme_color).toBe('#05070d')
   })
 
   it('declares icons at 192, 512, and a 512 maskable', () => {

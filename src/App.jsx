@@ -43,7 +43,10 @@ function App() {
   return (
     <>
       {showHomeScreenBanner && (
-        <p role="status" className="bg-white/10 px-4 py-2 text-sm">
+        <p
+          role="status"
+          className="border-b border-line bg-panel/80 px-4 py-2 text-center font-mono text-xs text-dim"
+        >
           {HOME_SCREEN_BANNER_TEXT}
         </p>
       )}

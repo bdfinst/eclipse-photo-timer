@@ -1,6 +1,7 @@
 import { clockService } from '../services/clock.js'
 import { useRehearsalControls } from '../hooks/useRehearsalControls.js'
 import { C1, C2, C3, C4 } from '../data/timeline.js'
+import { CHECKBOX_CLASS, TOGGLE_LABEL_CLASS } from './formClasses.js'
 
 // Speeds above 2x also suppress speech (useAnnouncements.js) so the
 // announcement pacing can be evaluated even at high playback rates.
@@ -27,45 +28,80 @@ function RehearsalPanel() {
     useRehearsalControls()
 
   return (
-    <section>
-      <h3>Rehearsal</h3>
-      <label>
-        <input type="checkbox" checked={rehearsalOn} onChange={toggle} />
+    <section className="flex flex-col gap-4">
+      {/* The enclosing module's summary row already reads "Rehearsal" — keep
+          the heading for document structure, hidden visually. */}
+      <h2 className="sr-only">Rehearsal</h2>
+      <label className={TOGGLE_LABEL_CLASS}>
+        <input type="checkbox" className={CHECKBOX_CLASS} checked={rehearsalOn} onChange={toggle} />
         Rehearsal mode
       </label>
 
       <div>
-        <h4>Jump to</h4>
-        {JUMP_TARGETS.map(({ label, at }) => (
-          <button key={label} type="button" onClick={() => jumpTo(at)}>
-            {label}
-          </button>
-        ))}
+        <h3 className="mb-2 font-mono text-[0.65rem] tracking-[0.3em] uppercase text-dim">
+          Jump to
+        </h3>
+        <div className="flex flex-wrap gap-2">
+          {JUMP_TARGETS.map(({ label, at }) => (
+            <button
+              key={label}
+              type="button"
+              className="min-h-11 border border-line bg-void px-3 font-mono text-xs text-ink transition-colors hover:border-corona hover:text-corona"
+              onClick={() => jumpTo(at)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
-        <h4>Speed</h4>
-        {SPEEDS.map((s) => (
-          <button key={s} type="button" aria-pressed={speed === s} onClick={() => selectSpeed(s)}>
-            {s}×
-          </button>
-        ))}
+        <h3 className="mb-2 font-mono text-[0.65rem] tracking-[0.3em] uppercase text-dim">Speed</h3>
+        <div className="flex gap-2">
+          {SPEEDS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              className="min-h-11 flex-1 border border-line bg-void px-2 font-mono text-sm text-dim transition-colors hover:text-ink aria-pressed:border-corona aria-pressed:bg-corona aria-pressed:font-semibold aria-pressed:text-black"
+              aria-pressed={speed === s}
+              onClick={() => selectSpeed(s)}
+            >
+              {s}×
+            </button>
+          ))}
+        </div>
       </div>
 
       <div>
-        <h4>Transport</h4>
-        {paused ? (
-          <button type="button" onClick={resume}>
-            Resume
+        <h3 className="mb-2 font-mono text-[0.65rem] tracking-[0.3em] uppercase text-dim">
+          Transport
+        </h3>
+        <div className="flex items-center gap-2">
+          {paused ? (
+            <button
+              type="button"
+              className="min-h-11 flex-1 border border-corona bg-corona/10 px-3 font-display text-base font-medium tracking-[0.2em] uppercase text-corona transition-colors hover:bg-corona hover:text-black"
+              onClick={resume}
+            >
+              Resume
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="min-h-11 flex-1 border border-ink/40 px-3 font-display text-base font-medium tracking-[0.2em] uppercase text-ink transition-colors hover:border-corona hover:text-corona"
+              onClick={pause}
+            >
+              Pause
+            </button>
+          )}
+          <button
+            type="button"
+            className="min-h-11 px-3 font-mono text-xs text-dim underline-offset-4 transition-colors hover:text-corona hover:underline"
+            onClick={reset}
+          >
+            Reset to real time
           </button>
-        ) : (
-          <button type="button" onClick={pause}>
-            Pause
-          </button>
-        )}
-        <button type="button" onClick={reset}>
-          Reset to real time
-        </button>
+        </div>
       </div>
     </section>
   )
