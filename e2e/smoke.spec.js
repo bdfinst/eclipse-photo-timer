@@ -67,3 +67,33 @@ test('app still boots after one online load and then going offline', async ({ pa
   await page.waitForTimeout(1000)
   expect(errors).toEqual([])
 })
+
+test('the generated service worker claims control immediately, without waiting for open tabs to close', async ({
+  page,
+}) => {
+  // Outcome-level check, not just a config assertion (vite.config.test.js
+  // asserts the INPUT — pwaOptions.injectRegister left at the plugin
+  // default — but a vite-plugin-pwa upgrade could change the guard that
+  // input relies on without that test noticing). skipWaiting + clientsClaim
+  // are what let a newly-deployed service worker take over an already-open
+  // tab immediately; without them a new deploy silently never reaches an
+  // already-open tab or installed PWA instance until it's fully closed and
+  // reopened — the exact bug this fix addresses.
+  await page.goto('/')
+  const { ok, swSource } = await page.evaluate(async () => {
+    const response = await fetch('/sw.js')
+    return { ok: response.ok, swSource: await response.text() }
+  })
+
+  expect(ok).toBe(true)
+  // workbox-build's sw template (node_modules/workbox-build/build/templates/
+  // sw-template.js) emits the literal substring "skipWaiting" in BOTH the
+  // enabled branch (an unconditional `self.skipWaiting()` call) AND the
+  // disabled one (a `message` listener that only calls `self.skipWaiting()`
+  // in response to a "SKIP_WAITING" message) — so matching "skipWaiting"
+  // alone can't tell them apart. "SKIP_WAITING" (the message-type string)
+  // appears ONLY in the disabled branch, so its ABSENCE is what proves
+  // skipWaiting runs unconditionally.
+  expect(swSource).not.toMatch(/SKIP_WAITING/)
+  expect(swSource).toMatch(/clientsClaim/)
+})

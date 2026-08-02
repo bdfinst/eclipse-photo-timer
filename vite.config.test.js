@@ -35,6 +35,17 @@ describe('vite-plugin-pwa configuration', () => {
     expect(pwaOptions.filename).toBe('sw.js')
   })
 
+  it('leaves injectRegister unset (the plugin default), not explicitly false', () => {
+    // Left at 'auto' deliberately. vite-plugin-pwa detects main.jsx's own
+    // virtual:pwa-register import and self-suppresses its bare fallback
+    // registration script either way — but it ALSO only auto-enables the
+    // workbox skipWaiting/clientsClaim options this fix depends on (so a new
+    // service worker actually takes over instead of parking in "waiting")
+    // when injectRegister resolves to 'auto' or null, never the literal
+    // `false`. Setting it to `false` here would silently break that.
+    expect(pwaOptions.injectRegister).toBeUndefined()
+  })
+
   it('precaches every static asset type with no runtime caching', () => {
     expect(pwaOptions.workbox.globPatterns).toEqual(['**/*.{js,css,html,svg,png,woff2}'])
     expect(pwaOptions.workbox.runtimeCaching).toBeUndefined()

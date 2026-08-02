@@ -28,6 +28,19 @@ export const pwaManifest = {
 // documented contract with Slice 12's netlify.toml /sw.js header rule.
 export const pwaOptions = {
   registerType: 'autoUpdate',
+  // main.jsx registers the service worker itself, via the virtual:pwa-register
+  // module, so it can listen for an update actually taking over and reload
+  // the page — the plugin's own auto-injected registration script has no such
+  // listener. Left at the default `injectRegister: 'auto'` deliberately, NOT
+  // set to `false` here: the plugin detects the virtual-module import itself
+  // and self-suppresses its own script injection in that case (avoiding
+  // double registration) — but ALSO only auto-enables the workbox
+  // `skipWaiting`/`clientsClaim` options this whole fix depends on when
+  // `injectRegister` resolves to `'auto'` or `null`, never when it's the
+  // literal `false` (vite-plugin-pwa's own source, `dist/index.js`). Setting
+  // `false` explicitly here would silently disable that and leave the new
+  // service worker parked in "waiting" forever while a tab stays open —
+  // reintroducing the exact bug this change fixes.
   // Documented default, set explicitly: Slice 12's netlify.toml hardcodes
   // a /sw.js no-cache header as an assumed contract with this filename.
   filename: 'sw.js',
