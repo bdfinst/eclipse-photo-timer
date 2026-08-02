@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PrepScreen from './PrepScreen.jsx'
 import { C2 } from '../data/timeline.js'
+import { CHECKLIST_GROUPS } from '../data/checklist.js'
 import { setItem } from '../services/storage.js'
 import { clockService } from '../services/clock.js'
 import { resetRehearsalControlsState } from '../hooks/useRehearsalControls.js'
@@ -282,13 +283,18 @@ describe('PrepScreen setup status', () => {
   })
 
   it('shows the rounded per-section percentage for partially-checked groups', () => {
-    // 1 of the 8 "night before" items (parfocality and the 250 zoom-mark
-    // items were removed by the fixed-focal change) — 12.5% rounds to 13%.
-    setItem('eclipse.checklist', { 'night-battery': true })
+    // Derived from the group's own size (same pattern as checklist.test.js)
+    // rather than hardcoding a percent — this row's job is proving the home
+    // view RENDERS the computed value, and a hardcoded number silently
+    // broke every time a checklist item was added or removed. The rounding
+    // math itself is independently pinned in src/data/checklist.test.js.
+    const [firstGroup] = CHECKLIST_GROUPS
+    setItem('eclipse.checklist', { [firstGroup.items[0].id]: true })
 
     render(<PrepScreen />)
 
-    expect(screen.getByText('13%')).toBeInTheDocument()
+    const expectedPercent = `${Math.round((1 / firstGroup.items.length) * 100)}%`
+    expect(screen.getByText(expectedPercent)).toBeInTheDocument()
     expect(screen.getAllByText('0%')).toHaveLength(3)
   })
 
