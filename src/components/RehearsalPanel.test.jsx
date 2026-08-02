@@ -119,6 +119,88 @@ describe.each([
     // session-scoped, not per-mount, so it survives between runs).
     expect(resetAnnouncementState).toHaveBeenCalled()
   })
+
+  it(`highlights ${label} as the selected starting point after tapping it`, () => {
+    render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: label }))
+
+    expect(screen.getByRole('button', { name: label })).toHaveAttribute('aria-pressed', 'true')
+  })
+})
+
+describe('RehearsalPanel jump-to selection highlight', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+    localStorage.clear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    clockService.clearVirtual()
+  })
+
+  it('starts with no jump target highlighted', () => {
+    render(<RehearsalPanel />)
+
+    expect(screen.getByRole('button', { name: 'C1 −2 min' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('moves the highlight when a different starting point is tapped', () => {
+    render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'C1 −2 min' }))
+    fireEvent.click(screen.getByRole('button', { name: 'C3 −20 s' }))
+
+    expect(screen.getByRole('button', { name: 'C1 −2 min' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+    expect(screen.getByRole('button', { name: 'C3 −20 s' })).toHaveAttribute('aria-pressed', 'true')
+  })
+
+  it('keeps the highlight across an unmount/remount while rehearsal keeps running', () => {
+    // The "← Setup"/GO LIVE round trip unmounts and remounts this panel
+    // while the clock keeps playing from the selected starting point — the
+    // highlight must survive it, like paused/preSpeed do.
+    const { unmount } = render(<RehearsalPanel />)
+    fireEvent.click(screen.getByRole('button', { name: 'C2 −5 min' }))
+
+    unmount()
+    render(<RehearsalPanel />)
+
+    expect(screen.getByRole('button', { name: 'C2 −5 min' })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    )
+  })
+
+  it('clears the highlight on Reset to real time', () => {
+    render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'C1 −2 min' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to real time' }))
+
+    expect(screen.getByRole('button', { name: 'C1 −2 min' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
+
+  it('clears the highlight when rehearsal mode is toggled off', () => {
+    render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'C1 −2 min' }))
+    fireEvent.click(screen.getByLabelText('Rehearsal mode'))
+
+    expect(screen.getByRole('button', { name: 'C1 −2 min' })).toHaveAttribute(
+      'aria-pressed',
+      'false',
+    )
+  })
 })
 
 describe('RehearsalPanel speed control', () => {

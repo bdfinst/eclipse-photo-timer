@@ -16,6 +16,12 @@ import { resetAnnouncementState } from './useAnnouncements.js'
 // instant tracking, for the same remount reason) keeps both accurate.
 let sessionPaused = false
 let sessionPreSpeed = 1
+// The most recent jump-to target (epoch ms), or null when none is active —
+// drives the Jump-to buttons' selected highlight. Session-scoped for the
+// same remount reason as the two above; cleared on the clock
+// discontinuities that also end rehearsal (toggle-off, reset), NOT on
+// speed/pause changes, which keep playing out the same selected window.
+let sessionJumpTargetMs = null
 
 // Test-isolation-only export (mirrors useAnnouncements' resetAnnouncementState):
 // nothing in production ever needs to reset this mid-session, since a real
@@ -25,6 +31,7 @@ let sessionPreSpeed = 1
 export function resetRehearsalControlsState() {
   sessionPaused = false
   sessionPreSpeed = 1
+  sessionJumpTargetMs = null
 }
 
 /**
@@ -38,6 +45,7 @@ export function resetRehearsalControlsState() {
  *   rehearsalOn: boolean,
  *   speed: number,
  *   paused: boolean,
+ *   jumpTargetMs: number | null,
  *   toggle: () => void,
  *   jumpTo: (targetMs: number) => void,
  *   selectSpeed: (speed: number) => void,
@@ -54,6 +62,7 @@ export function useRehearsalControls() {
   // always 1, so a remount while paused still resumes at the right speed.
   const [preSpeed, setPreSpeedState] = useState(() => sessionPreSpeed)
   const [paused, setPausedState] = useState(() => sessionPaused)
+  const [jumpTargetMs, setJumpTargetMsState] = useState(() => sessionJumpTargetMs)
 
   function setPaused(value) {
     sessionPaused = value
@@ -63,6 +72,11 @@ export function useRehearsalControls() {
   function setPreSpeed(value) {
     sessionPreSpeed = value
     setPreSpeedState(value)
+  }
+
+  function setJumpTargetMs(value) {
+    sessionJumpTargetMs = value
+    setJumpTargetMsState(value)
   }
 
   function toggle() {
@@ -76,6 +90,7 @@ export function useRehearsalControls() {
       clockService.clearVirtual()
       setRehearsalOn(false)
       setPaused(false)
+      setJumpTargetMs(null)
       return
     }
 
@@ -105,6 +120,9 @@ export function useRehearsalControls() {
     // sequence play out, so the Transport control must reflect that it's no
     // longer paused, not keep showing a stale "Resume".
     setPaused(false)
+    // Remember which starting point was picked, so the Jump-to buttons can
+    // highlight the active selection.
+    setJumpTargetMs(targetMs)
   }
 
   function selectSpeed(newSpeed) {
@@ -147,7 +165,19 @@ export function useRehearsalControls() {
     clockService.clearVirtual()
     setRehearsalOn(false)
     setPaused(false)
+    setJumpTargetMs(null)
   }
 
-  return { rehearsalOn, speed, paused, toggle, jumpTo, selectSpeed, pause, resume, reset }
+  return {
+    rehearsalOn,
+    speed,
+    paused,
+    jumpTargetMs,
+    toggle,
+    jumpTo,
+    selectSpeed,
+    pause,
+    resume,
+    reset,
+  }
 }

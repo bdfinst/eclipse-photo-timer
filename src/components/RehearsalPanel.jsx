@@ -24,8 +24,18 @@ const JUMP_TARGETS = [
  * only — state and clockService/storage wiring live in useRehearsalControls.
  */
 function RehearsalPanel() {
-  const { rehearsalOn, speed, paused, toggle, jumpTo, selectSpeed, pause, resume, reset } =
-    useRehearsalControls()
+  const {
+    rehearsalOn,
+    speed,
+    paused,
+    jumpTargetMs,
+    toggle,
+    jumpTo,
+    selectSpeed,
+    pause,
+    resume,
+    reset,
+  } = useRehearsalControls()
 
   return (
     <section className="flex flex-col gap-4">
@@ -46,7 +56,8 @@ function RehearsalPanel() {
             <button
               key={label}
               type="button"
-              className="min-h-11 border border-line bg-void px-3 font-mono text-xs text-ink transition-colors hover:border-corona hover:text-corona"
+              className="min-h-11 border border-line bg-void px-3 font-mono text-xs text-ink transition-colors hover:border-corona hover:text-corona aria-pressed:border-corona aria-pressed:bg-corona aria-pressed:font-semibold aria-pressed:text-black"
+              aria-pressed={jumpTargetMs === at}
               onClick={() => jumpTo(at)}
             >
               {label}
