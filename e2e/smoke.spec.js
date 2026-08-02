@@ -36,10 +36,14 @@ test('production build boots online with no console or network errors', async ({
   // The title alone is satisfied by the static HTML shell — proving React
   // actually mounted needs a locator for content only the rendered app emits.
   await expect(page.getByRole('heading', { name: 'Eclipse Timer' })).toBeVisible()
-  // expect.poll retries: page errors/failed requests can arrive after the
-  // load event (React's initial mount is scheduled, not synchronous), so a
-  // plain array snapshot here could miss late events.
-  await expect.poll(() => errors).toEqual([])
+  // Page errors/failed requests can arrive after the load event (React's
+  // initial mount is scheduled, not synchronous) — expect.poll alone
+  // doesn't help with that: it only dwells until its FIRST passing check,
+  // so with `errors` already empty it returns immediately, same as a plain
+  // snapshot. A short settle delay first gives late events a window to
+  // actually surface before the check runs.
+  await page.waitForTimeout(1000)
+  expect(errors).toEqual([])
 })
 
 test('app still boots after one online load and then going offline', async ({ page, context }) => {
@@ -60,5 +64,6 @@ test('app still boots after one online load and then going offline', async ({ pa
   // signal here — Chromium doesn't consistently flip it under Playwright's
   // context.setOffline(true)).
   expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
-  await expect.poll(() => errors).toEqual([])
+  await page.waitForTimeout(1000)
+  expect(errors).toEqual([])
 })
