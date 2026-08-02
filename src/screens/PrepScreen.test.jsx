@@ -216,7 +216,15 @@ describe('PrepScreen reference card', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Reference card' }))
 
     expect(screen.getByText('Global — set once')).toBeInTheDocument()
-    expect(screen.getByText('C2 — Totality bracket')).toBeInTheDocument()
+    // The dial-vs-contact naming convention renders before any C1-C4 token.
+    expect(
+      screen.getByText(
+        'The camera’s four custom dial modes are labelled C1–C4, and so are the eclipse contacts. “Dial Cn” always means the camera mode.',
+      ),
+    ).toBeInTheDocument()
+    expect(screen.getByText('Dial C2 — Totality bracket')).toBeInTheDocument()
+    // Rig page (field card page 2) renders below the camera settings.
+    expect(screen.getByText('DELAY 0 · LONG 1″ · INTVL 4″ · N = 826')).toBeInTheDocument()
     expect(
       screen.getByText(
         'FILTER ON for every second outside totality. OFF only between 2nd and 3rd contact.',

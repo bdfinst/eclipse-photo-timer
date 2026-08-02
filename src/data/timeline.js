@@ -65,7 +65,7 @@ export const EVENTS = [
     filterOn: true,
     title: 'Dry run the totality bracket',
     detail:
-      'Fire one C2 burst at the filtered sun. Confirm seven RAWs land, including the 1.3-second frame.',
+      'Fire one dial-C2 burst at the filtered sun. Confirm seven RAWs land, including the 1.3-second frame.',
   },
 
   {
@@ -161,7 +161,8 @@ export const EVENTS = [
     filterOn: true,
     title: 'Final check — zoom 500, hand on the filter',
     speak: 'Final check. Zoom five hundred. Hand on the filter.',
-    detail: 'Sun centred, camera awake, MF locked, C4 armed, ProCap half-pressed. Thirty seconds.',
+    detail:
+      'Sun centred, camera awake, MF locked, dial C4 armed, ProCap half-pressed. Thirty seconds.',
   },
 
   // ---------- totality ----------

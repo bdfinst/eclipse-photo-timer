@@ -99,7 +99,9 @@ describe('EventCard content', () => {
     renderCard({ at: '2026-08-12T17:46:10Z', mode: 'C4' }, 'active')
 
     expect(screen.getByText('17:46:10')).toBeInTheDocument()
-    expect(screen.getByText('C4')).toBeInTheDocument()
+    // "DIAL" prefix disambiguates the custom-mode chip from the
+    // eclipse contacts, which share the C1–C4 names.
+    expect(screen.getByText('DIAL C4')).toBeInTheDocument()
     // At C2 itself the relative label is T+ 00:00:00.
     expect(screen.getByText('T+ 00:00:00')).toBeInTheDocument()
   })
@@ -107,8 +109,7 @@ describe('EventCard content', () => {
   it('omits the mode chip when mode is null', () => {
     renderCard({ mode: null }, 'future')
 
-    expect(screen.queryByText('C1')).not.toBeInTheDocument()
-    expect(screen.queryByText('C2')).not.toBeInTheDocument()
+    expect(screen.queryByText(/DIAL/)).not.toBeInTheDocument()
   })
 
   it('renders a T− label for an event before C2', () => {

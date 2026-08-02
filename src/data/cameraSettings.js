@@ -28,6 +28,12 @@ export const GLOBAL_SETTINGS = [
   { label: 'Mode retention', value: 'Reset' },
 ]
 
+// Deliberate divergence from the card's bare "C1"/"C2" titles: the app
+// prefixes "Dial" because the eclipse CONTACTS also go by C1–C4, and both
+// appear side by side on the live screen and in rehearsal jump-tos.
+export const DIAL_DISAMBIGUATION_NOTE =
+  'The camera’s four custom dial modes are labelled C1–C4, and so are the eclipse contacts. “Dial Cn” always means the camera mode.'
+
 /**
  * The four custom dial modes. `ladder` (when present) is the HDR bracket:
  * one row per frame, base frame flagged so the UI can highlight it.
@@ -44,7 +50,7 @@ export const GLOBAL_SETTINGS = [
 export const CUSTOM_MODES = [
   {
     id: 'c1',
-    title: 'C1 — Partial phases',
+    title: 'Dial C1 — Partial phases',
     tagline: 'filter on · both timer runs and the hand-flown minutes',
     headline: 'ISO 200 · 1/400 · Single drive',
     notes:
@@ -52,7 +58,7 @@ export const CUSTOM_MODES = [
   },
   {
     id: 'c2',
-    title: 'C2 — Totality bracket',
+    title: 'Dial C2 — Totality bracket',
     tagline: 'the mode that matters · correct at every focal length',
     headline: 'ISO 200 · base 1/50 · Menu › Shooting 2 › HDR › 7f 2.0EV',
     ladder: [
@@ -69,7 +75,7 @@ export const CUSTOM_MODES = [
   },
   {
     id: 'c3',
-    title: 'C3 — Outer corona & earthshine',
+    title: 'Dial C3 — Outer corona & earthshine',
     tagline: 'picks up where C2 stops · shoot at zoom 250',
     headline: 'ISO 1600 · base 1/6 · Menu › Shooting 2 › HDR › 5f 2.0EV',
     ladder: [
@@ -84,7 +90,7 @@ export const CUSTOM_MODES = [
   },
   {
     id: 'c4',
-    title: "C4 — Diamond ring / Baily's beads",
+    title: "Dial C4 — Diamond ring / Baily's beads",
     tagline: '2nd and 3rd contact',
     headline: 'ISO 200 · 1/2500 · ProCap SH2',
     notes:

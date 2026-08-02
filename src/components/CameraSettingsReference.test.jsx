@@ -32,17 +32,17 @@ describe('CameraSettingsReference', () => {
   it('renders all four custom modes with their headline settings', () => {
     render(<CameraSettingsReference />)
 
-    expect(screen.getByText('C1 — Partial phases')).toBeInTheDocument()
+    expect(screen.getByText('Dial C1 — Partial phases')).toBeInTheDocument()
     expect(screen.getByText('ISO 200 · 1/400 · Single drive')).toBeInTheDocument()
-    expect(screen.getByText('C2 — Totality bracket')).toBeInTheDocument()
+    expect(screen.getByText('Dial C2 — Totality bracket')).toBeInTheDocument()
     expect(
       screen.getByText('ISO 200 · base 1/50 · Menu › Shooting 2 › HDR › 7f 2.0EV'),
     ).toBeInTheDocument()
-    expect(screen.getByText('C3 — Outer corona & earthshine')).toBeInTheDocument()
+    expect(screen.getByText('Dial C3 — Outer corona & earthshine')).toBeInTheDocument()
     expect(
       screen.getByText('ISO 1600 · base 1/6 · Menu › Shooting 2 › HDR › 5f 2.0EV'),
     ).toBeInTheDocument()
-    expect(screen.getByText("C4 — Diamond ring / Baily's beads")).toBeInTheDocument()
+    expect(screen.getByText("Dial C4 — Diamond ring / Baily's beads")).toBeInTheDocument()
     expect(screen.getByText('ISO 200 · 1/2500 · ProCap SH2')).toBeInTheDocument()
   })
 

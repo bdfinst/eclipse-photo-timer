@@ -129,7 +129,12 @@ function EventCard({ event, state, prefersReducedMotion = false, compact = false
         <span>{formatUtcTime(atMs)}</span>
         <span>{formatRelativeLabel(atMs)}</span>
         {event.mode && (
-          <span className="rounded bg-slate-700 px-1 font-semibold text-white">{event.mode}</span>
+          // "DIAL" prefix: the custom-mode positions share C1–C4 names with
+          // the eclipse contacts — an unprefixed chip reading "C2" next to
+          // an event near second contact is genuinely ambiguous.
+          <span className="rounded bg-slate-700 px-1 font-semibold text-white">
+            DIAL {event.mode}
+          </span>
         )}
       </div>
       <p className={styles.title}>{event.title}</p>

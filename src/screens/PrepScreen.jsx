@@ -6,10 +6,12 @@ import { CHECKLIST_STORAGE_KEY, checklistProgress } from '../data/checklist.js'
 import { formatDuration } from '../lib/formatDuration.js'
 import { formatUtcTime } from '../lib/formatTime.js'
 import { getItem } from '../services/storage.js'
+import { DIAL_DISAMBIGUATION_NOTE } from '../data/cameraSettings.js'
 import CameraSettingsReference from '../components/CameraSettingsReference.jsx'
 import ChecklistSection from '../components/ChecklistSection.jsx'
 import SettingsPanel from '../components/SettingsPanel.jsx'
 import RehearsalPanel, { RehearsalBanner } from '../components/RehearsalPanel.jsx'
+import RigReference from '../components/RigReference.jsx'
 
 // Originally verbatim from eclipse-timer-spec.md §5.3 — do not reformat the
 // numbers. The C3 line was updated to the operator's field card v4
@@ -327,6 +329,11 @@ function PrepScreen({ onGoLive }) {
               >
                 Reference card
               </h2>
+              {/* Rendered first, so the naming convention is established
+                  before any C1–C4 token in this view. */}
+              <p className="border-b border-line/60 px-4 py-2 text-xs leading-relaxed text-dim">
+                {DIAL_DISAMBIGUATION_NOTE}
+              </p>
               <div className="border-b border-line px-4 py-2">
                 {REFERENCE_CARD_LINES.map((line) => (
                   <p
@@ -337,8 +344,11 @@ function PrepScreen({ onGoLive }) {
                   </p>
                 ))}
               </div>
-              <div className="px-4 py-4">
+              <div className="border-b border-line px-4 py-4">
                 <CameraSettingsReference />
+              </div>
+              <div className="px-4 py-4">
+                <RigReference />
               </div>
             </section>
           )}
