@@ -251,7 +251,11 @@ function PrepScreen({ onGoLive }) {
               className="rise relative mt-6 mb-6 h-28 w-28 [animation-delay:160ms]"
             >
               <div className="corona-glow absolute -inset-3 rounded-full" />
-              <div className="moon-disc absolute inset-0 rounded-full" />
+              <div className="sun-disc absolute inset-0 rounded-full" />
+              {/* Oversized by 2% per side and nudged toward the lower-left,
+                  so a thin crescent of photosphere survives on the
+                  upper-right limb — a 99% partial, not totality. */}
+              <div className="moon-disc absolute inset-[-2%] translate-x-[-4%] translate-y-[4%] rounded-full" />
             </div>
 
             <p className="rise font-mono text-[clamp(2rem,9vw,2.9rem)] font-semibold tracking-tight tabular-nums [animation-delay:240ms]">

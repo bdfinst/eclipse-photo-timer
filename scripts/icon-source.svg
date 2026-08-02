@@ -1,5 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#000000" />
-  <circle cx="256" cy="256" r="140" fill="none" stroke="#ffffff" stroke-width="40" />
-  <circle cx="256" cy="256" r="120" fill="#000000" />
+  <rect width="512" height="512" fill="#05070d" />
+  <!-- soft glare halo -->
+  <circle cx="256" cy="256" r="168" fill="#ff8b3d" opacity="0.1" />
+  <circle cx="256" cy="256" r="152" fill="#ffb347" opacity="0.16" />
+  <!-- photosphere -->
+  <circle cx="256" cy="256" r="140" fill="#ffd98a" />
+  <!-- moon, slightly oversized and offset toward the lower-left: a thin
+       crescent survives on the upper-right limb (99% partial eclipse) -->
+  <circle cx="245" cy="267" r="142" fill="#05070d" />
 </svg>

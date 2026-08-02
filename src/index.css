@@ -57,8 +57,10 @@ body {
   color: #000;
 }
 
-/* The occluded sun: a soft breathing corona haze behind a hard black moon
-   disc rimmed by the photosphere's last sliver of light. */
+/* A 99% partial eclipse: the bright photosphere disc with the moon offset
+   just enough that a thin crescent survives on the upper-right limb, inside
+   a soft breathing glare halo. (Deliberately NOT the totality look — no
+   corona ring; the crescent is the light.) */
 @keyframes corona-breathe {
   0%,
   100% {
@@ -82,12 +84,13 @@ body {
   animation: corona-breathe 5.5s ease-in-out infinite;
 }
 
+.sun-disc {
+  background: radial-gradient(circle at 62% 38%, #ffe9b8, #ffb347 60%, #ff8b3d 96%);
+  box-shadow: 0 0 22px rgb(255 179 71 / 0.45);
+}
+
 .moon-disc {
-  background: #010204;
-  box-shadow:
-    0 0 0 1.5px rgb(255 224 158 / 0.9),
-    0 0 18px rgb(255 179 71 / 0.5),
-    0 0 60px rgb(255 139 61 / 0.25);
+  background: #05070d;
 }
 
 /* Staggered page-load reveal — one orchestrated entrance, not scattered
