@@ -287,3 +287,86 @@ describe('getScheduledInstants', () => {
     expect(c2Instants.find((instant) => instant.key === 'c2:due').cue).toBe('filter-toggle')
   })
 })
+
+describe('getScheduledInstants contract', () => {
+  const baseEvent = { id: 'x', at: '2026-08-12T12:00:00Z', critical: false, title: 'X title' }
+
+  it('honors an explicit leadSeconds override on a non-critical event, speaking its override text', () => {
+    const instants = getScheduledInstants({ ...baseEvent, leadSeconds: 20, speak: 'Custom line' })
+
+    expect(instants[0]).toMatchObject({
+      key: 'x:lead',
+      offsetSeconds: 20,
+      type: 'speak',
+      text: 'Custom line',
+    })
+  })
+
+  it('honors an explicit leadSeconds override on a critical event, replacing the 10s default', () => {
+    const lead = getScheduledInstants({ ...baseEvent, critical: true, leadSeconds: 3 }).find(
+      (instant) => instant.key === 'x:lead',
+    )
+
+    expect(lead.offsetSeconds).toBe(3)
+  })
+
+  it("schedules exactly one 'non-critical-due' tone for a default non-critical event", () => {
+    expect(getScheduledInstants(baseEvent)).toEqual([
+      { key: 'x:due', offsetSeconds: 0, type: 'tone', cue: 'non-critical-due' },
+    ])
+  })
+
+  it('schedules the ten warning blips as critical-warning tone instants', () => {
+    const warns = getScheduledInstants({ ...baseEvent, critical: true }).filter((instant) =>
+      instant.key.startsWith('x:warn:'),
+    )
+
+    expect(warns).toHaveLength(10)
+    for (const warn of warns) {
+      expect(warn).toMatchObject({ type: 'tone', cue: 'critical-warning' })
+    }
+  })
+
+  it("cues 'critical-due' for a critical event that is not c2/c3", () => {
+    const due = getScheduledInstants({ ...baseEvent, critical: true }).find(
+      (instant) => instant.key === 'x:due',
+    )
+
+    expect(due.cue).toBe('critical-due')
+  })
+
+  it('cues the filter-toggle sweep for BOTH the c2 and c3 due instants', () => {
+    for (const id of ['c2', 'c3']) {
+      const due = getScheduledInstants({ ...baseEvent, id, critical: true }).find(
+        (instant) => instant.key === `${id}:due`,
+      )
+
+      expect(due.cue).toBe('filter-toggle')
+    }
+  })
+})
+
+describe('useAnnouncements staleness boundary', () => {
+  beforeEach(() => {
+    speak.mockClear()
+    playTone.mockClear()
+    resetAnnouncementState()
+  })
+
+  afterEach(() => {
+    clockService.clearVirtual()
+  })
+
+  it('still fires an instant that is EXACTLY the 30s staleness bound old on remount — only MORE stale is treated as missed', () => {
+    // Kills the > vs >= boundary mutant: the docstring says "an instant
+    // MORE than this stale ... is treated like a catch-up instant", so
+    // exactly-at-the-bound must still fire.
+    const LEAD_AT = ARM_AT - 10_000
+    const first = renderAnnouncements(LEAD_AT - 1_000)
+    first.unmount()
+
+    renderAnnouncements(LEAD_AT + 30_000)
+
+    expect(speak).toHaveBeenCalledWith('Arm the timer')
+  })
+})

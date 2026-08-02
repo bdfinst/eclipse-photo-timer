@@ -9,6 +9,16 @@ import { expect, test } from '@playwright/test'
 
 const MANIFEST_TITLE = 'Eclipse Timer — Ólafsvík 2026'
 
+// Deterministic settle on the live screen: wait until the current-time row
+// has visibly advanced — real evidence the app's async work (announcement
+// ticks, late service-worker events) is running — instead of a fixed sleep
+// that is too short under CI load and pure cost otherwise.
+async function settleOneLiveTick(page) {
+  const timeRow = page.getByTestId('live-content').getByText(/^\d{2}:\d{2}:\d{2}/)
+  const initial = await timeRow.textContent()
+  await expect.poll(() => timeRow.textContent(), { timeout: 10_000 }).not.toBe(initial)
+}
+
 // Copied from smoke.spec.js — see that file for the rationale on each
 // listener (late console/page errors arrive after the load event because
 // React's initial mount is scheduled, not synchronous).
@@ -112,13 +122,10 @@ test('full app — prep, GO LIVE, rehearsal, and live screen — functions offli
   // one, successful or not, so it must never appear here.
   await expect(page.getByRole('dialog', { name: 'Enable audio' })).toHaveCount(0)
 
-  // expect.poll only dwells until its FIRST passing check — with `errors`
-  // already empty, it would return immediately and provide no window to
-  // catch a late console/page error or a failed request for a precache
-  // gap (the exact risk the comment on trackPageErrors warns about). A
-  // short settle delay first gives any in-flight async work (a tick from
-  // useAnnouncements, a late service-worker event) a chance to surface.
-  await page.waitForTimeout(1000)
+  // Settle on the live clock advancing before the error check — a late
+  // console/page error or precache-gap request failure (the exact risk the
+  // trackPageErrors comment warns about) gets a real window to surface.
+  await settleOneLiveTick(page)
   expect(errors).toEqual([])
 })
 
@@ -154,6 +161,6 @@ test('shows the persistent audio-unlock-failure warning chip when GO LIVE cannot
   // not additionally prompt the operator to tap again.
   await expect(page.getByRole('dialog', { name: 'Enable audio' })).toHaveCount(0)
 
-  await page.waitForTimeout(1000)
+  await settleOneLiveTick(page)
   expect(errors).toEqual([])
 })

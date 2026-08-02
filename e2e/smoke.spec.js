@@ -8,6 +8,17 @@ import { expect, test } from '@playwright/test'
 
 const MANIFEST_TITLE = 'Eclipse Timer — Ólafsvík 2026'
 
+// Deterministic settle: wait until the app's own tick loop has visibly
+// advanced the hero countdown by a second — real evidence the async
+// startup (React mount, service-worker registration, first ticks) has run
+// — instead of a fixed sleep that is too short under CI load and pure
+// cost otherwise. Bounded by expect.poll's timeout.
+async function settleOneCountdownTick(page) {
+  const countdown = page.getByText(/^T[−+] \d+:\d{2}:\d{2}$/)
+  const initial = await countdown.textContent()
+  await expect.poll(() => countdown.textContent(), { timeout: 10_000 }).not.toBe(initial)
+}
+
 function trackPageErrors(page) {
   const errors = []
 
@@ -37,12 +48,9 @@ test('production build boots online with no console or network errors', async ({
   // actually mounted needs a locator for content only the rendered app emits.
   await expect(page.getByRole('heading', { name: 'Eclipse Timer' })).toBeVisible()
   // Page errors/failed requests can arrive after the load event (React's
-  // initial mount is scheduled, not synchronous) — expect.poll alone
-  // doesn't help with that: it only dwells until its FIRST passing check,
-  // so with `errors` already empty it returns immediately, same as a plain
-  // snapshot. A short settle delay first gives late events a window to
-  // actually surface before the check runs.
-  await page.waitForTimeout(1000)
+  // initial mount is scheduled, not synchronous) — settle on the app's own
+  // tick advancing before the error check runs.
+  await settleOneCountdownTick(page)
   expect(errors).toEqual([])
 })
 
@@ -64,7 +72,7 @@ test('app still boots after one online load and then going offline', async ({ pa
   // signal here — Chromium doesn't consistently flip it under Playwright's
   // context.setOffline(true)).
   expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
-  await page.waitForTimeout(1000)
+  await settleOneCountdownTick(page)
   expect(errors).toEqual([])
 })
 

@@ -21,3 +21,10 @@ jobs:
       - run: npm run lint
       - run: npm run test
       - run: npm run build
+
+      # The Playwright suite is hermetic (production build + local preview +
+      # bundled Chromium; no external network) — it belongs in the gate: it
+      # is the only layer that verifies the service worker, precache, and
+      # offline boot, which are the app's reason to exist.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e

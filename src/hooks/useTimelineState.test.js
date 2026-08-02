@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { EVENTS } from '../data/timeline.js'
 import { findActiveEvent, useTimelineState } from './useTimelineState.js'
 
@@ -133,5 +133,37 @@ describe('findActiveEvent clock-offset boundary shift', () => {
     expect(findActiveEvent(EVENTS, threeSecondsBeforeBoundary - 1 + offsetMs).activeEvent.id).toBe(
       'arm',
     )
+  })
+})
+
+describe('parsed-timestamp memoization', () => {
+  it('parses each timestamp once per stable array reference, and re-parses when the array is resized in place', () => {
+    // The cache is a documented contract, not an implementation accident:
+    // findActiveEvent runs on every 250ms tick against the module-singleton
+    // EVENTS array, and the WeakMap exists precisely so those ticks stop
+    // paying the Date.parse cost. This kills the surviving cache-guard
+    // mutant (`if (true)`) that silently re-parses on every call.
+    const events = [
+      { id: 'a', at: '2026-08-12T10:00:00Z' },
+      { id: 'b', at: '2026-08-12T11:00:00Z' },
+    ]
+    const nowMs = Date.parse('2026-08-12T10:30:00Z')
+    const parseSpy = vi.spyOn(Date, 'parse')
+
+    try {
+      findActiveEvent(events, nowMs)
+      const parsesAfterFirstCall = parseSpy.mock.calls.length
+
+      findActiveEvent(events, nowMs + 1000)
+      expect(parseSpy.mock.calls.length).toBe(parsesAfterFirstCall)
+
+      // Resizing the same reference must invalidate the cache (the
+      // documented length check), re-parsing all three timestamps.
+      events.push({ id: 'c', at: '2026-08-12T12:00:00Z' })
+      findActiveEvent(events, nowMs)
+      expect(parseSpy.mock.calls.length).toBe(parsesAfterFirstCall + 3)
+    } finally {
+      parseSpy.mockRestore()
+    }
   })
 })

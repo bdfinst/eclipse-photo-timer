@@ -9,15 +9,22 @@ import {
   resetRehearsalSession,
 } from '../hooks/useRehearsalControls.js'
 
-vi.mock('../hooks/useAnnouncements.js', () => ({
-  resetAnnouncementState: vi.fn(),
-}))
+// Spy-through, not a full replacement: resetAnnouncementState keeps its
+// REAL behavior (so these tests exercise the actual reset) while still
+// recording calls for the wiring assertions below.
+vi.mock('../hooks/useAnnouncements.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual, resetAnnouncementState: vi.fn(actual.resetAnnouncementState) }
+})
 
 // useRehearsalControls' paused/preSpeed tracking is module-level (session-
 // scoped — see that hook's docstring), so it otherwise leaks across this
-// file's many independent renders. Reset before each test.
+// file's many independent renders. Reset before each test, and clear the
+// resetAnnouncementState spy here rather than ad hoc inside individual
+// tests, so call-count assertions never depend on a prior test's calls.
 beforeEach(() => {
   resetRehearsalControlsState()
+  resetAnnouncementState.mockClear()
 })
 
 describe('RehearsalPanel toggle', () => {
@@ -56,7 +63,6 @@ describe('RehearsalPanel toggle', () => {
   })
 
   it("resets useAnnouncements' consumed-instant state when toggled off, since exiting rehearsal jumps the clock back to real time — the same kind of discontinuity as a jump-to", () => {
-    resetAnnouncementState.mockClear()
     render(<RehearsalPanel />)
 
     fireEvent.click(screen.getByLabelText('Rehearsal mode'))
@@ -111,7 +117,6 @@ describe.each([
   })
 
   it("resets useAnnouncements' consumed-instant state, so a repeated rehearsal run through this same window fires again", () => {
-    resetAnnouncementState.mockClear()
     render(<RehearsalPanel />)
 
     fireEvent.click(screen.getByRole('button', { name: label }))
@@ -282,7 +287,6 @@ describe('RehearsalPanel pause, resume, and reset', () => {
 
   it("resets useAnnouncements' consumed-instant state on reset, for the same reason as toggling off", () => {
     clockService.setVirtual(Date.parse(C2), 1)
-    resetAnnouncementState.mockClear()
     render(<RehearsalPanel />)
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset to real time' }))
@@ -376,7 +380,6 @@ describe('resetRehearsalSession', () => {
 
   it('ends an active rehearsal: real clock restored, announcement state reset', () => {
     clockService.setVirtual(Date.parse(C2), 1)
-    resetAnnouncementState.mockClear()
 
     resetRehearsalSession()
 

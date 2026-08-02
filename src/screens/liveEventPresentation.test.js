@@ -55,6 +55,30 @@ describe('deriveEventState', () => {
     expect(deriveEventState(justBeyond, context(justBeyond))).toBe('future')
   })
 
+  it('marks only THE next event next-up — a different future event inside the 60s window stays "future"', () => {
+    // Kills the surviving deriveEventState mutants that drop the
+    // nextEvent-identity check: with it gone, ANY future event inside the
+    // window would light up as next-up alongside the real one.
+    const next = eventSecondsAway(30)
+    const alsoSoon = { id: 'different-event', at: new Date(NOW_MS + 50 * 1000).toISOString() }
+    const context = {
+      activeEvent: null,
+      nextEvent: next,
+      pastEventIds: new Set(),
+      now: NOW_MS,
+    }
+
+    expect(deriveEventState(next, context)).toBe('next-up')
+    expect(deriveEventState(alsoSoon, context)).toBe('future')
+  })
+
+  it('is "future" inside the 60s window when there is no next event at all', () => {
+    const soon = eventSecondsAway(30)
+    const context = { activeEvent: null, nextEvent: null, pastEventIds: new Set(), now: NOW_MS }
+
+    expect(deriveEventState(soon, context)).toBe('future')
+  })
+
   it('is "future" at exactly the 30-minute far-future boundary, and "future-far" one tick beyond it', () => {
     const atBoundary = eventSecondsAway(FAR_FUTURE_SECONDS)
     const justBeyond = eventSecondsAway(FAR_FUTURE_SECONDS + 1)

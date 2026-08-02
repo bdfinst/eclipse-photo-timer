@@ -537,30 +537,33 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
     vi.restoreAllMocks()
   })
 
-  it('fires the T-10 voice cue, the ten per-second warning blips, the filter-off sweep at C2, and auto-scrolls unattended through the totality sequence', () => {
+  // Shared creation method for every test in this describe (each test
+  // verifies ONE behavior of the same rehearsal run, split from a former
+  // all-in-one Eager Test so failures localize): arm the virtual clock at
+  // C2-30s, mount, and advance to C2-11s — one tick before c2's own T-10
+  // lead/warning instant — so each test observes the T-10 step itself
+  // rather than it having already fired.
+  function startRehearsalRunAtT11() {
     clockService.setVirtual(Date.parse(C2) - 30_000, 1)
-
     render(<LiveScreen />)
-
-    // Advance 19s of virtual (== real, at 1x) time: C2-30s -> C2-11s (T-11,
-    // one tick before c2's own T-10 lead/warning instant), so the loop below
-    // observes the T-10 step itself rather than it having already fired.
     act(() => {
       vi.advanceTimersByTime(19_000)
     })
+  }
 
-    // Advance second-by-second from T-10 through T-1, confirming a NEW
-    // critical-warning blip fires at every one of the ten steps — an EXACT
-    // per-step delta, not just "greater than before": burst-1 (6s after c2)
-    // starts its own T-10..T-1 warning window at c2's own T-4, so from that
-    // point on each tick legitimately carries two blips (c2's own plus
-    // burst-1's), and a c2-specific regression hiding behind burst-1's
-    // contribution would slip past a looser ">0" check.
+  function countWarningBlips() {
+    return playTone.mock.calls.filter(([cue]) => cue === 'critical-warning').length
+  }
+
+  it('fires exactly one new warning blip per second T-10 through T-1, two once burst-1 overlaps, then the filter-off sweep at C2', () => {
+    startRehearsalRunAtT11()
+
+    // An EXACT per-step delta, not just "greater than before": burst-1
+    // (6s after c2) starts its own T-10..T-1 warning window at c2's own
+    // T-4, so from that point each tick legitimately carries two blips
+    // (c2's own plus burst-1's), and a c2-specific regression hiding
+    // behind burst-1's contribution would slip past a looser ">0" check.
     const EXPECTED_WARNING_DELTAS = [1, 1, 1, 1, 1, 1, 2, 2, 2, 2]
-
-    function countWarningBlips() {
-      return playTone.mock.calls.filter(([cue]) => cue === 'critical-warning').length
-    }
 
     let previousCount = countWarningBlips()
     for (const expectedDelta of EXPECTED_WARNING_DELTAS) {
@@ -572,10 +575,6 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
       previousCount = count
     }
 
-    // The T-10 step (the loop's first iteration, now=C2-10s) is exactly
-    // c2's default 10s critical lead instant too — both fire together.
-    expect(speak).toHaveBeenCalledWith('Filter off. Filter off. Shoot the diamond ring.')
-
     // One more tick reaches c2's own due instant (now=C2): the sweep plays
     // instead of the standard critical-due cue, while burst-1's own T-6
     // warning (unrelated to c2) still legitimately fires alongside it.
@@ -585,18 +584,52 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
     expect(countWarningBlips() - previousCount).toBe(1)
     expect(playTone).toHaveBeenCalledWith('filter-toggle')
     expect(playTone).not.toHaveBeenCalledWith('critical-due')
+  })
 
+  it("speaks c2's lead line at T-10", () => {
+    startRehearsalRunAtT11()
+
+    act(() => {
+      vi.advanceTimersByTime(1000)
+    })
+
+    // The T-10 step is exactly c2's default 10s critical lead instant.
+    expect(speak).toHaveBeenCalledWith('Filter off. Filter off. Shoot the diamond ring.')
+  })
+
+  it('speaks all three earthshine calls distinctly across totality, and never a zoom prompt (fixed-focal change request §7)', () => {
+    startRehearsalRunAtT11()
+
+    const totalitySpanMs = Date.parse(C3) - Date.parse(C2) + 12_000
+    for (let elapsed = 0; elapsed < totalitySpanMs; elapsed += 1000) {
+      act(() => {
+        vi.advanceTimersByTime(1000)
+      })
+    }
+
+    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst one.')
+    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst two.')
+    expect(speak).toHaveBeenCalledWith('C three. Last earthshine burst.')
+    for (const [spoken] of speak.mock.calls) {
+      expect(spoken).not.toMatch(/[Zz]oom/)
+    }
+  })
+
+  it('auto-scrolls unattended through all nine totality transitions, never showing the resume pill', () => {
+    startRehearsalRunAtT11()
+
+    // Reach c2's due instant (11s from T-11), then snapshot the scroll
+    // count so the span loop below measures totality retargets only.
+    act(() => {
+      vi.advanceTimersByTime(11_000)
+    })
     const scrollCallsAtC2 = Element.prototype.scrollIntoView.mock.calls.length
 
-    // Advance clear through the rest of the totality sequence (C2 -> c3,
-    // ~2m3s) one second at a time, with no simulated manual scroll anywhere
-    // in this test — auto-scroll must retarget on its own as the active card
-    // advances through all nine totality steps. One-second steps (rather
-    // than a single large jump) are deliberate: React 18 automatic batching
-    // coalesces every state update inside one `act()` callback into a single
-    // render, so a single multi-minute jump would only ever observe the
-    // *final* active card, silently skipping every intermediate totality
-    // step's own retarget.
+    // One-second steps (rather than one large jump) are deliberate: React
+    // automatic batching coalesces every state update inside one act()
+    // callback into a single render, so a single multi-minute jump would
+    // only ever observe the FINAL active card, silently skipping every
+    // intermediate totality step's own retarget.
     const totalitySpanMs = Date.parse(C3) - Date.parse(C2) + 1000
     for (let elapsed = 0; elapsed < totalitySpanMs; elapsed += 1000) {
       act(() => {
@@ -609,15 +642,6 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
     // must produce its own retarget — an exact count, not a loose floor.
     expect(Element.prototype.scrollIntoView.mock.calls.length).toBe(scrollCallsAtC2 + 9)
     expect(screen.queryByText('↓ NOW')).not.toBeInTheDocument()
-
-    // Fixed-focal change request §7: the run speaks all three earthshine
-    // calls distinctly, and no zoom prompt exists anywhere in it.
-    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst one.')
-    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst two.')
-    expect(speak).toHaveBeenCalledWith('C three. Last earthshine burst.')
-    for (const [spoken] of speak.mock.calls) {
-      expect(spoken).not.toMatch(/[Zz]oom/)
-    }
   })
 })
 
