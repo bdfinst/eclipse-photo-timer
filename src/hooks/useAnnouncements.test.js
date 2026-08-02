@@ -1,6 +1,10 @@
 import { act, renderHook } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getScheduledInstants, useAnnouncements } from './useAnnouncements.js'
+import {
+  getScheduledInstants,
+  resetAnnouncementState,
+  useAnnouncements,
+} from './useAnnouncements.js'
 import { speak, playTone } from '../services/audio.js'
 import { setItem } from '../services/storage.js'
 import { clockService, REHEARSAL_SPEED_KEY } from '../services/clock.js'
@@ -24,6 +28,10 @@ describe('useAnnouncements', () => {
   beforeEach(() => {
     speak.mockClear()
     playTone.mockClear()
+    // Consumed/first-tick state is module-level (session-scoped, not tied
+    // to a single hook instance — see useAnnouncements.js's docstring), so
+    // each test must start from a clean slate independent of the others.
+    resetAnnouncementState()
   })
 
   afterEach(() => {
@@ -121,6 +129,41 @@ describe('useAnnouncements', () => {
     expect(speak).toHaveBeenCalledWith('First contact. Start the timer now.')
   })
 
+  it('still fires an instant that became due while unmounted (e.g. the operator went back to the prep screen and returned), rather than treating the remount as a fresh catch-up', () => {
+    // Mount well before c1's lead instant (16:46:50Z) — nothing due yet, and
+    // this mount's own first tick establishes "session has ticked" so a
+    // LATER remount is not itself treated as catch-up.
+    const { unmount } = renderAnnouncements(Date.parse('2026-08-12T16:46:00Z'))
+    expect(speak).not.toHaveBeenCalled()
+
+    // Simulates navigating away (App.jsx's "← Setup" button unmounts
+    // LiveScreen) and back (GO LIVE remounts it) — a brand new hook
+    // instance, not just a rerender of the same one.
+    unmount()
+
+    // Remounts AFTER c1's lead instant has already passed while "off-screen".
+    // A useRef-based (per-mount) implementation would wrongly treat this as
+    // a fresh mount-time catch-up and swallow it; the module-level state
+    // must still fire it, since the whole SESSION already ticked once.
+    renderAnnouncements(Date.parse('2026-08-12T16:47:00Z'))
+
+    expect(speak).toHaveBeenCalledWith('First contact. Start the timer now.')
+  })
+
+  it('does not burst-fire an instant that has been stale for more than 30s by the time of remount', () => {
+    // Same shape as the previous test, but the detour is much longer: c1's
+    // lead instant (16:46:50Z) is 40s stale by the time of remount
+    // (16:47:30Z) — well past MAX_STALE_MS. A long-detour return should not
+    // dump a backlog of stale reminders; this instant is treated as missed.
+    const { unmount } = renderAnnouncements(Date.parse('2026-08-12T16:46:00Z'))
+    expect(speak).not.toHaveBeenCalled()
+
+    unmount()
+    renderAnnouncements(Date.parse('2026-08-12T16:47:30Z'))
+
+    expect(speak).not.toHaveBeenCalledWith('First contact. Start the timer now.')
+  })
+
   it('suppresses speak() but still plays the tone above 2x rehearsal speed (spec §8)', () => {
     localStorage.clear()
     setItem(REHEARSAL_SPEED_KEY, 10)
@@ -136,6 +179,46 @@ describe('useAnnouncements', () => {
     act(() => rerender({ now: ARM_AT - 5_000, master: true, voice: true, tones: true }))
     expect(speak).not.toHaveBeenCalled()
     expect(playTone).toHaveBeenCalled()
+  })
+
+  it('scales the staleness bound by rehearsal speed, so a round trip that only takes a few real seconds still fires at 2x', () => {
+    // At 2x, MAX_STALE_MS (30s real) scales to 60s of virtual staleness.
+    // Uses speed 2 (not a higher speed like 10x) deliberately: above 2x,
+    // speech is ALSO suppressed by the separate "above 2x" rule (spec §8)
+    // regardless of staleness, which would confound a speak assertion here.
+    // Asserts on "Arm the timer" specifically (arm's lead instant, unique
+    // text — unlike the 'critical-due'/'critical-warning' cue strings,
+    // which several critical events share, this can't be produced by any
+    // other event firing nearby) and stays well before c1 (16:47:00Z, 2
+    // minutes after arm) so no other event's own instants are due yet.
+    localStorage.clear()
+    setItem(REHEARSAL_SPEED_KEY, 2)
+    clockService.setVirtual(ARM_AT - 10_001, 2)
+
+    const { unmount } = renderAnnouncements(ARM_AT - 10_001)
+    expect(speak).not.toHaveBeenCalled()
+
+    unmount()
+    // Lead instant (ARM_AT - 10s) is 50s stale here — within the 60s bound.
+    renderAnnouncements(ARM_AT - 10_000 + 50_000)
+
+    expect(speak).toHaveBeenCalledWith('Arm the timer')
+  })
+
+  it('still bounds staleness at 2x once the virtual-time equivalent exceeds 30 real seconds', () => {
+    // Same shape, but 70s stale — over the 60s scaled bound (~35 real
+    // seconds away, no longer "a quick check") — and still before c1.
+    localStorage.clear()
+    setItem(REHEARSAL_SPEED_KEY, 2)
+    clockService.setVirtual(ARM_AT - 10_001, 2)
+
+    const { unmount } = renderAnnouncements(ARM_AT - 10_001)
+    expect(speak).not.toHaveBeenCalled()
+
+    unmount()
+    renderAnnouncements(ARM_AT - 10_000 + 70_000)
+
+    expect(speak).not.toHaveBeenCalledWith('Arm the timer')
   })
 
   it('still speaks at exactly 2x rehearsal speed', () => {

@@ -100,8 +100,8 @@ describe('EventCard content', () => {
 
     expect(screen.getByText('17:46:10')).toBeInTheDocument()
     expect(screen.getByText('C4')).toBeInTheDocument()
-    // At C2 itself the relative label is T+ 0:00.
-    expect(screen.getByText('T+ 0:00')).toBeInTheDocument()
+    // At C2 itself the relative label is T+ 00:00:00.
+    expect(screen.getByText('T+ 00:00:00')).toBeInTheDocument()
   })
 
   it('omits the mode chip when mode is null', () => {
@@ -115,14 +115,14 @@ describe('EventCard content', () => {
     // c1 is 2026-08-12T16:47:00Z, exactly 59:10 before C2 (17:46:10Z).
     renderCard({ at: '2026-08-12T16:47:00Z' }, 'past')
 
-    expect(screen.getByText('T− 59:10')).toBeInTheDocument()
+    expect(screen.getByText('T− 00:59:10')).toBeInTheDocument()
   })
 
   it('renders a T+ label for an event after C2', () => {
     // burst-1 is 2026-08-12T17:46:15Z, exactly 5s after C2.
     renderCard({ at: '2026-08-12T17:46:15Z' }, 'active')
 
-    expect(screen.getByText('T+ 0:05')).toBeInTheDocument()
+    expect(screen.getByText('T+ 00:00:05')).toBeInTheDocument()
   })
 })
 

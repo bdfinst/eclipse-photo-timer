@@ -4,8 +4,16 @@ import PrepScreen from './PrepScreen.jsx'
 import { C2 } from '../data/timeline.js'
 import { setItem } from '../services/storage.js'
 import { clockService } from '../services/clock.js'
+import { resetRehearsalControlsState } from '../hooks/useRehearsalControls.js'
 
 const ONE_H_23_M_45_S_MS = ((1 * 60 + 23) * 60 + 45) * 1000
+
+// useRehearsalControls' paused/preSpeed tracking is module-level (session-
+// scoped — see that hook's docstring), so it otherwise leaks across this
+// file's several PrepScreen (and, with it, RehearsalPanel) mounts.
+beforeEach(() => {
+  resetRehearsalControlsState()
+})
 
 describe('PrepScreen header', () => {
   beforeEach(() => {
@@ -22,7 +30,15 @@ describe('PrepScreen header', () => {
 
     render(<PrepScreen />)
 
-    expect(screen.getByText('T− 1:23:45')).toBeInTheDocument()
+    expect(screen.getByText('T− 01:23:45')).toBeInTheDocument()
+  })
+
+  it('switches to a T+ elapsed display once C2 has passed (reachable via the "← Setup" button)', () => {
+    vi.setSystemTime(Date.parse(C2) + ONE_H_23_M_45_S_MS)
+
+    render(<PrepScreen />)
+
+    expect(screen.getByText('T+ 01:23:45')).toBeInTheDocument()
   })
 
   it('shows a prominent GO LIVE button', () => {
@@ -47,7 +63,7 @@ describe('PrepScreen header', () => {
     vi.setSystemTime(Date.parse(C2) - ONE_H_23_M_45_S_MS)
 
     render(<PrepScreen />)
-    expect(screen.getByText('T− 1:23:45')).toBeInTheDocument()
+    expect(screen.getByText('T− 01:23:45')).toBeInTheDocument()
 
     setItem('eclipse.clockOffsetMs', 5000)
     // Force an immediate recompute without advancing the fake clock, so the
@@ -57,7 +73,7 @@ describe('PrepScreen header', () => {
       document.dispatchEvent(new Event('visibilitychange'))
     })
 
-    expect(screen.getByText('T− 1:23:40')).toBeInTheDocument()
+    expect(screen.getByText('T− 01:23:40')).toBeInTheDocument()
   })
 })
 

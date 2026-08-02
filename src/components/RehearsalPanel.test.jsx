@@ -3,6 +3,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import RehearsalPanel, { RehearsalBanner } from './RehearsalPanel.jsx'
 import { clockService } from '../services/clock.js'
 import { C1, C2, C3, C4 } from '../data/timeline.js'
+import { resetAnnouncementState } from '../hooks/useAnnouncements.js'
+import { resetRehearsalControlsState } from '../hooks/useRehearsalControls.js'
+
+vi.mock('../hooks/useAnnouncements.js', () => ({
+  resetAnnouncementState: vi.fn(),
+}))
+
+// useRehearsalControls' paused/preSpeed tracking is module-level (session-
+// scoped — see that hook's docstring), so it otherwise leaks across this
+// file's many independent renders. Reset before each test.
+beforeEach(() => {
+  resetRehearsalControlsState()
+})
 
 describe('RehearsalPanel toggle', () => {
   beforeEach(() => {
@@ -37,6 +50,17 @@ describe('RehearsalPanel toggle', () => {
 
     expect(clockService.isRehearsal()).toBe(false)
     expect(screen.getByLabelText('Rehearsal mode')).not.toBeChecked()
+  })
+
+  it("resets useAnnouncements' consumed-instant state when toggled off, since exiting rehearsal jumps the clock back to real time — the same kind of discontinuity as a jump-to", () => {
+    resetAnnouncementState.mockClear()
+    render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByLabelText('Rehearsal mode'))
+    resetAnnouncementState.mockClear() // toggling ON does not need to reset
+    fireEvent.click(screen.getByLabelText('Rehearsal mode'))
+
+    expect(resetAnnouncementState).toHaveBeenCalled()
   })
 
   it('arms at whatever speed was already selected, not a hardcoded 1x, so the persisted speed and the actual clock rate never desync', () => {
@@ -81,6 +105,19 @@ describe.each([
 
     expect(clockService.isRehearsal()).toBe(true)
     expect(clockService.now()).toBe(target)
+  })
+
+  it("resets useAnnouncements' consumed-instant state, so a repeated rehearsal run through this same window fires again", () => {
+    resetAnnouncementState.mockClear()
+    render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: label }))
+
+    // Without this, a second jump into an already-rehearsed window would
+    // silently announce nothing — every instant in it is already marked
+    // consumed from the first run (useAnnouncements' consumed state is
+    // session-scoped, not per-mount, so it survives between runs).
+    expect(resetAnnouncementState).toHaveBeenCalled()
   })
 })
 
@@ -158,6 +195,16 @@ describe('RehearsalPanel pause, resume, and reset', () => {
     expect(clockService.isRehearsal()).toBe(false)
   })
 
+  it("resets useAnnouncements' consumed-instant state on reset, for the same reason as toggling off", () => {
+    clockService.setVirtual(Date.parse(C2), 1)
+    resetAnnouncementState.mockClear()
+    render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to real time' }))
+
+    expect(resetAnnouncementState).toHaveBeenCalled()
+  })
+
   it('resumes at a previously-selected non-default speed, not always 1x', () => {
     clockService.setVirtual(Date.parse(C2), 1)
     render(<RehearsalPanel />)
@@ -166,6 +213,30 @@ describe('RehearsalPanel pause, resume, and reset', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Pause' }))
     vi.advanceTimersByTime(5000)
     const pausedAt = clockService.now()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Resume' }))
+    vi.advanceTimersByTime(1000)
+
+    expect(clockService.now()).toBe(pausedAt + 10_000)
+  })
+
+  it('still shows Resume (not Pause) and restores the correct pre-pause speed after the panel unmounts and remounts while paused', () => {
+    // Regression test: the "← Setup" button (App.jsx) unmounts RehearsalPanel
+    // on GO LIVE and remounts it on return, while the clock itself stays
+    // exactly as the operator left it. A plain per-mount useState here would
+    // forget both that it was paused and at what speed to resume.
+    clockService.setVirtual(Date.parse(C2), 1)
+    const { unmount } = render(<RehearsalPanel />)
+
+    fireEvent.click(screen.getByRole('button', { name: '10×' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Pause' }))
+    const pausedAt = clockService.now()
+
+    unmount()
+    render(<RehearsalPanel />)
+
+    expect(screen.getByRole('button', { name: 'Resume' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument()
 
     fireEvent.click(screen.getByRole('button', { name: 'Resume' }))
     vi.advanceTimersByTime(1000)

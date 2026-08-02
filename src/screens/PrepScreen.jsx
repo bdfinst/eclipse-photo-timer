@@ -2,6 +2,7 @@ import { useMemo } from 'react'
 import { useNow } from '../hooks/useNow.js'
 import { clockService } from '../services/clock.js'
 import { C2 } from '../data/timeline.js'
+import { formatDuration } from '../lib/formatDuration.js'
 import ChecklistSection from '../components/ChecklistSection.jsx'
 import SettingsPanel from '../components/SettingsPanel.jsx'
 import RehearsalPanel, { RehearsalBanner } from '../components/RehearsalPanel.jsx'
@@ -16,21 +17,25 @@ const REFERENCE_CARD_LINES = [
 
 const C2_MS = Date.parse(C2)
 
-function pad(n) {
-  return String(n).padStart(2, '0')
-}
-
 /**
- * Formats a countdown delta as `T− H:MM:SS` (spec §5, §14 AC). Clamped at
- * zero — this screen never needs to show a negative countdown past C2.
+ * Formats a countdown/elapsed delta as `T− HH:MM:SS` before C2, switching to
+ * `T+ HH:MM:SS` once C2 has passed (spec §5, §14 AC) — the operator can now
+ * navigate back to this screen from the live timeline at any point (the
+ * "← Setup" button), including after C2, so a countdown frozen at
+ * "T− 00:00:00" forever past that instant would be misleading.
+ *
+ * The remaining (T−) side ceils, never floors: matching NextAction.jsx's
+ * own stated convention, showing "00:00:00" for the entire final second
+ * before C2 would under-report and read as early. The elapsed (T+) side
+ * floors, which is correct for elapsed time (a partially-elapsed second
+ * hasn't fully elapsed yet).
  */
 function formatCountdown(deltaMs) {
-  const totalSeconds = Math.max(0, Math.floor(deltaMs / 1000))
-  const hours = Math.floor(totalSeconds / 3600)
-  const minutes = Math.floor((totalSeconds % 3600) / 60)
-  const seconds = totalSeconds % 60
+  if (deltaMs < 0) {
+    return `T+ ${formatDuration(Math.floor(-deltaMs / 1000))}`
+  }
 
-  return `T− ${hours}:${pad(minutes)}:${pad(seconds)}`
+  return `T− ${formatDuration(Math.ceil(deltaMs / 1000))}`
 }
 
 function PrepScreen({ onGoLive }) {

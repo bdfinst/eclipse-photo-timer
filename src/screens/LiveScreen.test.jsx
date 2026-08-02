@@ -5,6 +5,7 @@ import { setItem } from '../services/storage.js'
 import { clockService } from '../services/clock.js'
 import { C2, C3 } from '../data/timeline.js'
 import { unlockAudio, speak, playTone } from '../services/audio.js'
+import { resetAnnouncementState } from '../hooks/useAnnouncements.js'
 
 vi.mock('../services/audio.js', async (importOriginal) => {
   const actual = await importOriginal()
@@ -14,6 +15,15 @@ vi.mock('../services/audio.js', async (importOriginal) => {
     speak: vi.fn(),
     playTone: vi.fn(),
   }
+})
+
+// useAnnouncements' consumed/first-tick state is deliberately module-level
+// (session-scoped, so a real back-to-prep-and-return round trip doesn't
+// re-trigger mount-time catch-up — see that hook's docstring), which means
+// it otherwise leaks across every test in this file. Reset before each one
+// so each test's own announcement assertions start from a clean slate.
+beforeEach(() => {
+  resetAnnouncementState()
 })
 
 describe('LiveScreen filter banner', () => {
@@ -106,7 +116,7 @@ describe('LiveScreen next-action countdown', () => {
     vi.useRealTimers()
   })
 
-  it('reads "T− 00:42" when the next event is 42 seconds away', () => {
+  it('reads "T− 00:00:42" when the next event is 42 seconds away', () => {
     // "arm" is at 16:45:00Z — 42s before is 16:44:18Z.
     vi.setSystemTime(Date.parse('2026-08-12T16:44:18Z'))
 
@@ -116,7 +126,7 @@ describe('LiveScreen next-action countdown', () => {
     const nextAction = within(screen.getByTestId('next-action'))
 
     expect(nextAction.getByText('Arm the timer')).toBeInTheDocument()
-    expect(nextAction.getByText('T− 00:42')).toBeInTheDocument()
+    expect(nextAction.getByText('T− 00:00:42')).toBeInTheDocument()
   })
 
   it('switches to a large single number when the next event is 7 seconds away', () => {
@@ -635,5 +645,34 @@ describe('LiveScreen announcement catch-up (spec §7.4)', () => {
     })
 
     expect(playTone).toHaveBeenCalledWith('non-critical-due')
+  })
+})
+
+describe('LiveScreen back-to-setup button', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    vi.restoreAllMocks()
+  })
+
+  it('renders no back button when onBack is not provided (e.g. every other test in this file)', () => {
+    render(<LiveScreen />)
+
+    expect(screen.queryByRole('button', { name: '← Setup' })).not.toBeInTheDocument()
+  })
+
+  it('calls onBack when the "← Setup" button is tapped', () => {
+    const onBack = vi.fn()
+    render(<LiveScreen onBack={onBack} />)
+
+    fireEvent.click(screen.getByRole('button', { name: '← Setup' }))
+
+    expect(onBack).toHaveBeenCalledTimes(1)
   })
 })

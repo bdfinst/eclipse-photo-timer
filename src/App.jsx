@@ -36,6 +36,10 @@ function App() {
     setScreen('live')
   }
 
+  function handleBackToPrep() {
+    setScreen('prep')
+  }
+
   return (
     <>
       {showHomeScreenBanner && (
@@ -46,7 +50,7 @@ function App() {
       {screen === 'prep' ? (
         <PrepScreen onGoLive={handleGoLive} />
       ) : (
-        <LiveScreen initialAudioStatus={audioStatus} />
+        <LiveScreen initialAudioStatus={audioStatus} onBack={handleBackToPrep} />
       )}
     </>
   )

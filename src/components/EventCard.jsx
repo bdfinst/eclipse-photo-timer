@@ -1,25 +1,20 @@
 import { C2 } from '../data/timeline.js'
 import { formatUtcTime } from '../lib/formatTime.js'
+import { formatDuration } from '../lib/formatDuration.js'
 
 const C2_MS = Date.parse(C2)
 
-function pad(n) {
-  return String(n).padStart(2, '0')
-}
-
 /**
- * `T− 4:10` / `T+ 0:38` relative to C2 (spec §6.3) — minutes unpadded,
- * seconds zero-padded, using U+2212 (minus sign, matching Countdown.jsx's
- * existing "T− " convention) for events before C2.
+ * `T− 00:04:10` / `T+ 00:00:38` relative to C2 (spec §6.3), using U+2212
+ * (minus sign, matching Countdown.jsx's existing "T− " convention) for
+ * events before C2.
  */
 function formatRelativeLabel(atMs) {
   const diffMs = atMs - C2_MS
   const sign = diffMs < 0 ? '−' : '+'
   const totalSeconds = Math.round(Math.abs(diffMs) / 1000)
-  const minutes = Math.floor(totalSeconds / 60)
-  const seconds = totalSeconds % 60
 
-  return `T${sign} ${minutes}:${pad(seconds)}`
+  return `T${sign} ${formatDuration(totalSeconds)}`
 }
 
 // Phase left-edge colours (spec §6.4): prep grey, partials blue, handovers

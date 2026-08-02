@@ -6,10 +6,22 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App, { HOME_SCREEN_BANNER_SEEN_KEY } from './App'
 import { setItem } from './services/storage.js'
 import { unlockAudio } from './services/audio.js'
+import { resetAnnouncementState } from './hooks/useAnnouncements.js'
+import { resetRehearsalControlsState } from './hooks/useRehearsalControls.js'
 
 vi.mock('./services/audio.js', async (importOriginal) => {
   const actual = await importOriginal()
   return { ...actual, unlockAudio: vi.fn(() => ({ ok: true })) }
+})
+
+// useAnnouncements' consumed/first-tick state and useRehearsalControls'
+// paused/preSpeed state are both module-level (session-scoped — see each
+// hook's own docstring), so they otherwise leak across this file's several
+// LiveScreen/PrepScreen mounts (via GO LIVE / the "← Setup" button). Reset
+// before each test.
+beforeEach(() => {
+  resetAnnouncementState()
+  resetRehearsalControlsState()
 })
 
 // Independently authored from spec §9, deliberately NOT imported from
@@ -76,6 +88,18 @@ describe('App GO LIVE flow', () => {
     // confirmation couldn't be verified.
     expect(screen.getByTestId('event-list')).toBeInTheDocument()
     expect(screen.getByText(/audio confirmation could not be verified/i)).toBeInTheDocument()
+  })
+
+  it('returns to the prep screen when "← Setup" is tapped on the live screen', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'GO LIVE →' }))
+    expect(screen.getByTestId('event-list')).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '← Setup' }))
+
+    expect(screen.getByRole('button', { name: 'GO LIVE →' })).toBeInTheDocument()
+    expect(screen.queryByTestId('event-list')).not.toBeInTheDocument()
   })
 })
 

@@ -43,7 +43,7 @@ function formatOffsetAnnotation(offsetMs) {
 // tap-to-enable overlay shows. GO LIVE (App.jsx) passes 'unlocked' or
 // 'failed' instead, since that gesture already satisfied the browser's
 // user-gesture requirement, successfully or not.
-function LiveScreen({ initialAudioStatus = 'pending' }) {
+function LiveScreen({ initialAudioStatus = 'pending', onBack }) {
   const {
     status: audioStatus,
     contentRef: liveContentRef,
@@ -117,6 +117,15 @@ function LiveScreen({ initialAudioStatus = 'pending' }) {
   return (
     <div>
       <RehearsalBanner />
+      {onBack && (
+        <button
+          type="button"
+          onClick={onBack}
+          className="fixed top-2 right-2 z-10 rounded bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-white"
+        >
+          ← Setup
+        </button>
+      )}
       <div ref={liveContentRef} data-testid="live-content" tabIndex={-1}>
         <FilterBanner filterOn={filterOn} />
         <p>
