@@ -25,6 +25,10 @@ export default [
       ...react.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
+      // JS-only project, no PropTypes/TS convention (.claude/CLAUDE.md) — this
+      // rule would otherwise force a per-file suppression on every
+      // prop-accepting component.
+      'react/prop-types': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }],
       'no-var': 'error',
       'prefer-const': 'error',
