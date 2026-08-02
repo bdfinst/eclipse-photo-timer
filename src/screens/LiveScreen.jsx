@@ -3,8 +3,11 @@ import { useNow } from '../hooks/useNow.js'
 import { useTimelineState } from '../hooks/useTimelineState.js'
 import { useWakeLock } from '../hooks/useWakeLock.js'
 import { useAutoScrollSuspend } from '../hooks/useAutoScrollSuspend.js'
+import { useAnnouncements } from '../hooks/useAnnouncements.js'
+import { useAudioUnlock } from '../hooks/useAudioUnlock.js'
 import { clockService } from '../services/clock.js'
 import { getItem } from '../services/storage.js'
+import { AUDIO_MASTER_KEY, AUDIO_VOICE_KEY, AUDIO_TONES_KEY } from '../services/audio.js'
 import { EVENTS } from '../data/timeline.js'
 import { formatUtcTime } from '../lib/formatTime.js'
 import FilterBanner from '../components/FilterBanner.jsx'
@@ -34,7 +37,17 @@ function formatOffsetAnnotation(offsetMs) {
   return `(${sign}${seconds}s)`
 }
 
-function LiveScreen() {
+// `initialAudioStatus` defaults to 'pending' — no prior unlock gesture has
+// happened (e.g. the app was opened directly on this screen) — so the
+// tap-to-enable overlay shows. GO LIVE (App.jsx) passes 'unlocked' or
+// 'failed' instead, since that gesture already satisfied the browser's
+// user-gesture requirement, successfully or not.
+function LiveScreen({ initialAudioStatus = 'pending' }) {
+  const {
+    status: audioStatus,
+    contentRef: liveContentRef,
+    unlock: handleUnlockTap,
+  } = useAudioUnlock(initialAudioStatus)
   const now = useNow(clockService)
   const { filterOn, nextEvent, activeEvent, pastEvents } = useTimelineState(now, EVENTS)
   // The stored offset only applies to the real clock — clockService.now()
@@ -45,6 +58,13 @@ function LiveScreen() {
   const offsetMs = Number.isFinite(rawOffsetMs) ? rawOffsetMs : 0
   const offsetAnnotation = formatOffsetAnnotation(offsetMs)
   const wakeLock = useWakeLock()
+
+  // Read fresh each render (every 250ms tick, since `now` changes) so a
+  // setting toggled mid-session takes effect on the very next tick.
+  const audioMasterOn = getItem(AUDIO_MASTER_KEY, true)
+  const audioVoiceOn = getItem(AUDIO_VOICE_KEY, true)
+  const audioTonesOn = getItem(AUDIO_TONES_KEY, true)
+  useAnnouncements(now, audioMasterOn, audioVoiceOn, audioTonesOn)
 
   const pastEventIds = useMemo(() => new Set(pastEvents.map((event) => event.id)), [pastEvents])
   const stateContext = { activeEvent, nextEvent, pastEventIds, now }
@@ -95,16 +115,44 @@ function LiveScreen() {
 
   return (
     <div>
-      <FilterBanner filterOn={filterOn} />
-      <p>
-        {formatUtcTime(now)}
-        {offsetAnnotation && <span> {offsetAnnotation}</span>}
-      </p>
-      <NextAction event={nextEvent} now={now} />
+      <div ref={liveContentRef} data-testid="live-content" tabIndex={-1}>
+        <FilterBanner filterOn={filterOn} />
+        <p>
+          {formatUtcTime(now)}
+          {offsetAnnotation && <span> {offsetAnnotation}</span>}
+        </p>
+        <NextAction event={nextEvent} now={now} />
+      </div>
       {wakeLock.failed && (
         <p role="alert" className="bg-amber-500 px-3 py-2 text-sm font-semibold text-black">
           Screen wake lock unavailable — set auto-lock to Never so the display does not sleep.
         </p>
+      )}
+      {audioStatus === 'failed' && (
+        <p role="alert" className="bg-amber-500 px-3 py-2 text-sm font-semibold text-black">
+          Audio confirmation could not be verified — announcements may not be audible.
+        </p>
+      )}
+      {/* The tap itself is the required user gesture for a direct-load-on-
+          live-screen case (spec §7.1); useAudioUnlock moves focus to
+          liveContentRef once resolved. jsdom performs no real visual
+          layering, so this overlay is an additional element rather than a
+          replacement of the content beneath it (see LiveScreen.test.jsx for
+          the coexistence this preserves). */}
+      {audioStatus === 'pending' && (
+        <div
+          role="dialog"
+          aria-label="Enable audio"
+          className="fixed inset-0 flex items-center justify-center bg-black/80"
+        >
+          <button
+            type="button"
+            onClick={handleUnlockTap}
+            className="rounded bg-white px-6 py-3 text-lg font-semibold text-black"
+          >
+            Tap to enable audio
+          </button>
+        </div>
       )}
       {showTotalityBlock && (
         <div data-testid="totality-block" className="flex flex-col gap-0.5">

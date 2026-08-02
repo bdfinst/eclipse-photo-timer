@@ -1,5 +1,9 @@
 import { useEffect, useState } from 'react'
 import { getItem, setItem } from './services/storage.js'
+import { unlockAudio } from './services/audio.js'
+import { audioStatusFromResult } from './hooks/useAudioUnlock.js'
+import PrepScreen from './screens/PrepScreen.jsx'
+import LiveScreen from './screens/LiveScreen.jsx'
 
 export const HOME_SCREEN_BANNER_SEEN_KEY = 'eclipse.homeScreenBannerSeen'
 export const HOME_SCREEN_BANNER_TEXT =
@@ -7,6 +11,12 @@ export const HOME_SCREEN_BANNER_TEXT =
 
 function App() {
   const [showHomeScreenBanner, setShowHomeScreenBanner] = useState(false)
+  const [screen, setScreen] = useState('prep')
+  // Carried into LiveScreen so a warning chip can render immediately if the
+  // GO LIVE gesture's unlock attempt failed — the gesture already happened
+  // once, successful or not, so LiveScreen must not re-prompt via its own
+  // tap-to-enable overlay (Step 9.2).
+  const [audioStatus, setAudioStatus] = useState('pending')
 
   useEffect(() => {
     if (!getItem(HOME_SCREEN_BANNER_SEEN_KEY, false)) {
@@ -15,16 +25,28 @@ function App() {
     }
   }, [])
 
+  function handleGoLive() {
+    const result = unlockAudio()
+    // Always switch screens, even on unlock failure — the operator must
+    // never be blocked from the live screen because audio confirmation
+    // couldn't be verified.
+    setAudioStatus(audioStatusFromResult(result))
+    setScreen('live')
+  }
+
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-2 text-center">
+    <>
       {showHomeScreenBanner && (
         <p role="status" className="bg-white/10 px-4 py-2 text-sm">
           {HOME_SCREEN_BANNER_TEXT}
         </p>
       )}
-      <h1 className="text-3xl font-semibold">Eclipse Timer</h1>
-      <p className="text-white/60">Ólafsvík, Iceland — 12 August 2026</p>
-    </main>
+      {screen === 'prep' ? (
+        <PrepScreen onGoLive={handleGoLive} />
+      ) : (
+        <LiveScreen initialAudioStatus={audioStatus} />
+      )}
+    </>
   )
 }
 

@@ -1,10 +1,16 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { render, screen } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { fireEvent, render, screen } from '@testing-library/react'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App, { HOME_SCREEN_BANNER_SEEN_KEY } from './App'
 import { setItem } from './services/storage.js'
+import { unlockAudio } from './services/audio.js'
+
+vi.mock('./services/audio.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return { ...actual, unlockAudio: vi.fn(() => ({ ok: true })) }
+})
 
 // Independently authored from spec §9, deliberately NOT imported from
 // ./App's HOME_SCREEN_BANNER_TEXT — asserting against the app's own exported
@@ -33,6 +39,43 @@ describe('App', () => {
     setItem(HOME_SCREEN_BANNER_SEEN_KEY, true)
     render(<App />)
     expect(screen.queryByText(HOME_SCREEN_BANNER_TEXT)).not.toBeInTheDocument()
+  })
+})
+
+describe('App GO LIVE flow', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+    unlockAudio.mockClear()
+    unlockAudio.mockReturnValue({ ok: true })
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    vi.restoreAllMocks()
+  })
+
+  it('unlocks audio as part of the GO LIVE gesture and switches to the live screen', () => {
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'GO LIVE →' }))
+
+    expect(unlockAudio).toHaveBeenCalledTimes(1)
+    expect(screen.getByTestId('event-list')).toBeInTheDocument()
+  })
+
+  it('still switches to the live screen when the unlock attempt fails, and shows the failure warning', () => {
+    unlockAudio.mockReturnValue({ ok: false, reason: 'unsupported' })
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'GO LIVE →' }))
+
+    // The operator must never be stranded on the prep screen because audio
+    // confirmation couldn't be verified.
+    expect(screen.getByTestId('event-list')).toBeInTheDocument()
+    expect(screen.getByText(/audio confirmation could not be verified/i)).toBeInTheDocument()
   })
 })
 

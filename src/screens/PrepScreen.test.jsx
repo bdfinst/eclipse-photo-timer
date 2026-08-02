@@ -1,4 +1,4 @@
-import { act, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import PrepScreen from './PrepScreen.jsx'
 import { C2 } from '../data/timeline.js'
@@ -57,6 +57,21 @@ describe('PrepScreen header', () => {
     })
 
     expect(screen.getByText('T− 1:23:40')).toBeInTheDocument()
+  })
+})
+
+describe('PrepScreen GO LIVE gesture', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('calls onGoLive when tapped', () => {
+    const onGoLive = vi.fn()
+    render(<PrepScreen onGoLive={onGoLive} />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'GO LIVE →' }))
+
+    expect(onGoLive).toHaveBeenCalledTimes(1)
   })
 })
 

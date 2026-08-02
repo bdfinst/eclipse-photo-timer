@@ -32,9 +32,7 @@ function formatCountdown(deltaMs) {
   return `T− ${hours}:${pad(minutes)}:${pad(seconds)}`
 }
 
-// GO LIVE is a no-op this slice — navigation to the live timeline screen is
-// wired in Slice 9.
-function PrepScreen() {
+function PrepScreen({ onGoLive }) {
   const now = useNow(clockService)
   const countdown = useMemo(() => formatCountdown(C2_MS - now), [now])
 
@@ -43,7 +41,9 @@ function PrepScreen() {
       <header>
         <h1>Eclipse Timer</h1>
         <p>{countdown}</p>
-        <button type="button">GO LIVE →</button>
+        <button type="button" onClick={onGoLive}>
+          GO LIVE →
+        </button>
       </header>
       <ChecklistSection />
       <details>

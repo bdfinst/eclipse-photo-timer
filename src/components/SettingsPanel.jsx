@@ -1,11 +1,20 @@
 import { useEffect, useState } from 'react'
 import { getItem, setItem } from '../services/storage.js'
-import { AUDIO_CUES, playTone, speak } from '../services/audio.js'
+import {
+  AUDIO_CUES,
+  AUDIO_MASTER_KEY,
+  AUDIO_TONES_KEY,
+  AUDIO_VOICE_KEY,
+  playTone,
+  speak,
+} from '../services/audio.js'
+
+// Re-exported for backward compatibility — these keys now live canonically
+// in audio.js (see that module for why), but SettingsPanel is still where
+// the UI for toggling them lives.
+export { AUDIO_MASTER_KEY, AUDIO_VOICE_KEY, AUDIO_TONES_KEY }
 
 export const CLOCK_OFFSET_KEY = 'eclipse.clockOffsetMs'
-export const AUDIO_MASTER_KEY = 'eclipse.audioMasterOn'
-export const AUDIO_VOICE_KEY = 'eclipse.audioVoiceOn'
-export const AUDIO_TONES_KEY = 'eclipse.audioTonesOn'
 export const KEEP_AWAKE_KEY = 'eclipse.keepAwakeOn'
 
 // Longest cue (filter-toggle) runs 600ms (audio.js), so 700ms between cue

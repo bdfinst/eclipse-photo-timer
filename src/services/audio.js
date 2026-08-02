@@ -4,6 +4,14 @@
  * secondary confirmation channel, not something that may crash the app.
  */
 
+// Persisted settings keys — canonical home here (not SettingsPanel.jsx,
+// which just presents them) since the live announcement scheduler
+// (useAnnouncements.js) reads them directly and shouldn't depend on a
+// presentational component's exports.
+export const AUDIO_MASTER_KEY = 'eclipse.audioMasterOn'
+export const AUDIO_VOICE_KEY = 'eclipse.audioVoiceOn'
+export const AUDIO_TONES_KEY = 'eclipse.audioTonesOn'
+
 function pickVoice(synth) {
   const voices = typeof synth.getVoices === 'function' ? synth.getVoices() : []
 

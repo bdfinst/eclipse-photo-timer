@@ -3,6 +3,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import LiveScreen from './LiveScreen.jsx'
 import { setItem } from '../services/storage.js'
 import { clockService } from '../services/clock.js'
+import { unlockAudio, speak, playTone } from '../services/audio.js'
+
+vi.mock('../services/audio.js', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual,
+    unlockAudio: vi.fn(() => ({ ok: false, reason: 'unsupported' })),
+    speak: vi.fn(),
+    playTone: vi.fn(),
+  }
+})
 
 describe('LiveScreen filter banner', () => {
   beforeEach(() => {
@@ -151,6 +162,77 @@ describe('LiveScreen wake lock', () => {
     await act(async () => {})
 
     expect(screen.getByText(/set auto-lock to never/i)).toBeInTheDocument()
+  })
+})
+
+describe('LiveScreen audio unlock overlay', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    vi.setSystemTime(Date.parse('2026-08-12T16:46:00Z'))
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+    unlockAudio.mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    vi.restoreAllMocks()
+  })
+
+  it('shows a tap-to-enable-audio overlay by default, without hiding existing content', () => {
+    render(<LiveScreen />)
+
+    expect(screen.getByText('Tap to enable audio')).toBeInTheDocument()
+    expect(screen.getByTestId('event-list')).toBeInTheDocument()
+  })
+
+  it('unlocks audio, dismisses the overlay, and moves focus to the primary content on tap', () => {
+    unlockAudio.mockReturnValue({ ok: true })
+
+    render(<LiveScreen />)
+    fireEvent.click(screen.getByText('Tap to enable audio'))
+
+    expect(unlockAudio).toHaveBeenCalledTimes(1)
+    expect(screen.queryByText('Tap to enable audio')).not.toBeInTheDocument()
+    expect(screen.getByTestId('live-content')).toHaveFocus()
+  })
+
+  it('does not show the overlay when a prior GO LIVE unlock gesture already happened', () => {
+    render(<LiveScreen initialAudioStatus="unlocked" />)
+
+    expect(screen.queryByText('Tap to enable audio')).not.toBeInTheDocument()
+  })
+})
+
+describe('LiveScreen audio unlock failure warning', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    vi.setSystemTime(Date.parse('2026-08-12T16:46:00Z'))
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    vi.restoreAllMocks()
+  })
+
+  it('shows a persistent warning chip when GO LIVE already attempted unlock and failed', () => {
+    render(<LiveScreen initialAudioStatus="failed" />)
+
+    expect(screen.getByText(/audio confirmation could not be verified/i)).toBeInTheDocument()
+    expect(screen.queryByText('Tap to enable audio')).not.toBeInTheDocument()
+  })
+
+  it('shows the warning chip when the tap-to-enable gesture itself fails', () => {
+    unlockAudio.mockReturnValue({ ok: false, reason: 'unsupported' })
+
+    render(<LiveScreen />)
+    fireEvent.click(screen.getByText('Tap to enable audio'))
+
+    expect(screen.getByText(/audio confirmation could not be verified/i)).toBeInTheDocument()
   })
 })
 
@@ -395,5 +477,41 @@ describe('LiveScreen prefers-reduced-motion', () => {
       behavior: 'auto',
       block: 'center',
     })
+  })
+})
+
+describe('LiveScreen announcement catch-up (spec §7.4)', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+    speak.mockClear()
+    playTone.mockClear()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    vi.restoreAllMocks()
+  })
+
+  it('never announces already-past events when opened mid-sequence, but keeps announcing future ones', () => {
+    // arm (16:45:00Z), c1 (16:47:00Z), and check-1's own due instant
+    // (17:00:00Z, exactly mount time) are all already due-or-past at mount.
+    vi.setSystemTime(Date.parse('2026-08-12T17:00:00Z'))
+
+    render(<LiveScreen />)
+
+    expect(speak).not.toHaveBeenCalled()
+    expect(playTone).not.toHaveBeenCalled()
+
+    // check-2 (17:25:00Z, non-critical) was still in the future at mount —
+    // the mechanism must still fire it once the tick naturally reaches it.
+    act(() => {
+      vi.setSystemTime(Date.parse('2026-08-12T17:25:00Z'))
+      vi.advanceTimersByTime(250)
+    })
+
+    expect(playTone).toHaveBeenCalledWith('non-critical-due')
   })
 })
