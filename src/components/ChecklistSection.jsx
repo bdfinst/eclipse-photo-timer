@@ -49,13 +49,17 @@ function ChecklistSection() {
             {group.title}
             {/* aria-hidden: decorative — must not leak into the button's
                 accessible name, which tests (and screen readers) key on. */}
-            <span
-              aria-hidden="true"
-              className={`font-mono text-xs text-corona/70 transition-transform duration-200 ${
-                openGroups[group.id] ? 'rotate-90' : ''
-              }`}
-            >
-              ▸
+            <span aria-hidden="true" className="flex items-center gap-2">
+              <span className="font-mono text-[0.65rem] tabular-nums text-dim">
+                {group.items.filter((item) => checked[item.id]).length}/{group.items.length}
+              </span>
+              <span
+                className={`font-mono text-xs text-corona/70 transition-transform duration-200 ${
+                  openGroups[group.id] ? 'rotate-90' : ''
+                }`}
+              >
+                ▸
+              </span>
             </span>
           </button>
           {openGroups[group.id] && (

@@ -92,20 +92,100 @@ describe('PrepScreen GO LIVE gesture', () => {
   })
 })
 
+describe('PrepScreen hamburger menu', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('lists the three prep sections once opened, and closes via the close button', () => {
+    render(<PrepScreen />)
+
+    expect(screen.queryByRole('button', { name: 'Reference card' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+
+    expect(screen.getByRole('button', { name: 'Checklist' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Reference card' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Rehearsal' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close menu' }))
+
+    expect(screen.queryByRole('button', { name: 'Reference card' })).not.toBeInTheDocument()
+  })
+
+  it('navigates to the checklist section and back home', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Checklist' }))
+
+    // The section replaces the home hero — GO LIVE lives on home only.
+    expect(screen.getByRole('button', { name: 'Reset all' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'GO LIVE →' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: '← Home' }))
+
+    expect(screen.getByRole('button', { name: 'GO LIVE →' })).toBeInTheDocument()
+  })
+
+  it('hands focus to the back button when re-selecting the already-open section', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Checklist' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Checklist' }))
+
+    // The drawer (and the menu item that was just activated) unmounted —
+    // without an explicit handoff, focus would silently drop to <body>.
+    expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument()
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: '← Home' }))
+  })
+
+  it('closes the drawer on Escape', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument()
+  })
+
+  it('closes the settings modal first, then the drawer, when both are open', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    // The drawer has no focus trap, so the top-bar gear button stays
+    // keyboard-reachable behind it — both overlays CAN be open at once,
+    // and one Escape must dismiss only the topmost.
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(screen.queryByRole('dialog', { name: 'Settings' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Close menu' })).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(screen.queryByRole('button', { name: 'Close menu' })).not.toBeInTheDocument()
+  })
+})
+
 describe('PrepScreen reference card', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
-  it('is collapsed by default and reveals the exposure ladder text when expanded', () => {
+  it('is hidden until opened from the menu, then shows the exposure ladder text', () => {
     render(<PrepScreen />)
 
-    const referenceCard = screen.getByText('Reference card').closest('details')
-    expect(referenceCard).not.toHaveAttribute('open')
+    expect(screen.queryByText(/Bracket \(C2\)/)).not.toBeInTheDocument()
 
-    expect(screen.queryByText(/Bracket \(C2\)/)).not.toBeVisible()
-
-    referenceCard.setAttribute('open', '')
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Reference card' }))
 
     expect(
       screen.getByText(
@@ -126,15 +206,68 @@ describe('PrepScreen reference card', () => {
   })
 })
 
-describe('PrepScreen settings composition', () => {
+describe('PrepScreen settings modal', () => {
   beforeEach(() => {
     localStorage.clear()
   })
 
-  it('composes the settings panel, exposing the clock offset stepper', () => {
+  it('opens from the gear button, exposing the clock offset stepper, and closes again', () => {
     render(<PrepScreen />)
 
+    expect(screen.queryByRole('button', { name: '+10s' })).not.toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: '+10s' })).toBeInTheDocument()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Close settings' }))
+
+    expect(screen.queryByRole('button', { name: '+10s' })).not.toBeInTheDocument()
+  })
+
+  it('closes on Escape', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Settings' }))
+    expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
+
+    fireEvent.keyDown(document, { key: 'Escape' })
+
+    expect(screen.queryByRole('dialog', { name: 'Settings' })).not.toBeInTheDocument()
+  })
+})
+
+describe('PrepScreen setup status', () => {
+  beforeEach(() => {
+    localStorage.clear()
+  })
+
+  it('shows 0% for every section with nothing checked', () => {
+    render(<PrepScreen />)
+
+    expect(screen.getByText('Setup status')).toBeInTheDocument()
+    expect(screen.getByText('The night before')).toBeInTheDocument()
+    // Four checklist groups, all untouched.
+    expect(screen.getAllByText('0%')).toHaveLength(4)
+  })
+
+  it('shows the rounded per-section percentage for partially-checked groups', () => {
+    // 1 of the 10 "night before" items — 10%; other groups untouched.
+    setItem('eclipse.checklist', { 'night-battery': true })
+
+    render(<PrepScreen />)
+
+    expect(screen.getByText('10%')).toBeInTheDocument()
+    expect(screen.getAllByText('0%')).toHaveLength(3)
+  })
+
+  it('navigates to the checklist when a status row is tapped', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: /The night before/ }))
+
+    expect(screen.getByRole('button', { name: 'Reset all' })).toBeInTheDocument()
   })
 })
 
@@ -154,11 +287,32 @@ describe('PrepScreen rehearsal banner (spec §8)', () => {
 
     expect(screen.queryByText('REHEARSAL — NOT LIVE')).not.toBeInTheDocument()
 
+    // The rehearsal controls now live behind the hamburger menu.
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Rehearsal' }))
     fireEvent.click(screen.getByLabelText('Rehearsal mode'))
     act(() => {
       vi.advanceTimersByTime(250)
     })
 
     expect(screen.getByText('REHEARSAL — NOT LIVE')).toBeInTheDocument()
+  })
+
+  it('shows a live clock readout on the rehearsal view that reflects a jump-to selection', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Rehearsal' }))
+    fireEvent.click(screen.getByRole('button', { name: 'C1 −2 min' }))
+    act(() => {
+      vi.advanceTimersByTime(250)
+    })
+
+    // C1 (2026-08-12T16:47:00Z) − 2 min = 16:45:00 UTC, independently
+    // hardcoded rather than derived from the timeline constant — the digit
+    // wildcard absorbs the one tick of virtual time elapsed above. Without
+    // the readout, a jump-to changed nothing visible on this view and read
+    // as the selection silently failing.
+    expect(screen.getByText(/16:45:0\d · T− 01:01:\d{2}/)).toBeInTheDocument()
   })
 })

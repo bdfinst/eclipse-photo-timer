@@ -53,7 +53,8 @@ test('full app — prep, GO LIVE, rehearsal, and live screen — functions offli
   await expect(page.getByText(/^T− \d+:\d{2}:\d{2}$/)).toBeVisible()
   const goLiveButton = page.getByRole('button', { name: 'GO LIVE →' })
   await expect(goLiveButton).toBeVisible()
-  // Checklist section rendered (ChecklistSection.jsx group title).
+  // Setup status block rendered on the home view (one row per checklist
+  // group — the checklist itself now lives behind the hamburger menu).
   await expect(page.getByText('The night before')).toBeVisible()
   // Confirm this reload was actually served by the service worker rather
   // than an HTTP cache silently satisfying it (same rationale as
@@ -61,7 +62,9 @@ test('full app — prep, GO LIVE, rehearsal, and live screen — functions offli
   expect(await page.evaluate(() => navigator.serviceWorker.controller !== null)).toBe(true)
 
   // --- Rehearsal mode can be toggled while offline, and shows the banner ---
-  await page.locator('summary', { hasText: 'Rehearsal' }).click()
+  // The rehearsal section now lives behind the hamburger menu.
+  await page.getByRole('button', { name: 'Menu' }).click()
+  await page.getByRole('button', { name: 'Rehearsal', exact: true }).click()
   const rehearsalToggle = page.getByLabel('Rehearsal mode')
   await rehearsalToggle.check()
   await expect(page.getByText('REHEARSAL — NOT LIVE')).toBeVisible()
@@ -75,6 +78,10 @@ test('full app — prep, GO LIVE, rehearsal, and live screen — functions offli
   // next event). "C1 −2 min" lands exactly on the 'arm' event's own
   // timestamp (src/data/timeline.js) — filterOn: true, next event 'c1'.
   await page.getByRole('button', { name: 'C1 −2 min' }).click()
+
+  // GO LIVE lives on the home view only — return there from the rehearsal
+  // section before tapping it.
+  await page.getByRole('button', { name: '← Home' }).click()
 
   // --- GO LIVE navigates to the live screen, still offline ---
   // unlockAudio() (App.jsx's handleGoLive) runs synchronously off this

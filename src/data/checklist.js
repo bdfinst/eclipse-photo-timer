@@ -125,3 +125,29 @@ export const CHECKLIST_GROUPS = [
     ],
   },
 ]
+
+/**
+ * Per-group completion derived from a persisted `checked` map
+ * ({ [itemId]: boolean }, the `eclipse.checklist` shape). Ids not belonging
+ * to a group are simply never counted, so stale keys from removed items
+ * can't inflate a percentage. Pure — reads only CHECKLIST_GROUPS and the
+ * argument — so the PrepScreen home view can recompute it every tick
+ * without touching storage itself.
+ *
+ * @param {Record<string, boolean>} checked
+ * @returns {{ id: string, title: string, done: number, total: number, percent: number }[]}
+ */
+export function checklistProgress(checked) {
+  return CHECKLIST_GROUPS.map((group) => {
+    const total = group.items.length
+    const done = group.items.filter((item) => Boolean(checked?.[item.id])).length
+
+    return {
+      id: group.id,
+      title: group.title,
+      done,
+      total,
+      percent: total === 0 ? 0 : Math.round((done / total) * 100),
+    }
+  })
+}
