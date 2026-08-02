@@ -23,15 +23,38 @@ let sessionPreSpeed = 1
 // speed/pause changes, which keep playing out the same selected window.
 let sessionJumpTargetMs = null
 
-// Test-isolation-only export (mirrors useAnnouncements' resetAnnouncementState):
-// nothing in production ever needs to reset this mid-session, since a real
-// pause/resume/toggle-off/reset always keeps it in sync via the setters
-// above. Without this, one test leaving the session paused would leak that
-// into the next render in the same test file.
+// Resets the module-level session state above. Two callers: test-isolation
+// beforeEach blocks (mirroring useAnnouncements' resetAnnouncementState),
+// and resetRehearsalSession below, which is a real production path.
 export function resetRehearsalControlsState() {
   sessionPaused = false
   sessionPreSpeed = 1
   sessionJumpTargetMs = null
+}
+
+/**
+ * Ends any active rehearsal outright: back to the real clock, announcement
+ * catch-up state cleared, transport/jump-target session state reset.
+ * Called by App.jsx when the operator returns to the setup screen while
+ * rehearsing — coming back to setup mid-rehearsal means "this practice run
+ * is over", not "keep the virtual clock playing underneath the prep
+ * screen".
+ *
+ * The isRehearsal() guard is load-bearing, not an optimization: on a REAL
+ * (non-rehearsal) session this must be a strict no-op, because clearing
+ * announcement state on an eclipse-day trip back to the checklist would
+ * make the next live tick re-run first-tick catch-up and silently swallow
+ * any announcement that became due during the detour — the exact bug the
+ * session-scoped announcement state exists to prevent.
+ */
+export function resetRehearsalSession() {
+  if (!clockService.isRehearsal()) {
+    return
+  }
+
+  resetAnnouncementState()
+  clockService.clearVirtual()
+  resetRehearsalControlsState()
 }
 
 /**

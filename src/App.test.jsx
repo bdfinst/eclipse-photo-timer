@@ -8,6 +8,7 @@ import { setItem } from './services/storage.js'
 import { unlockAudio } from './services/audio.js'
 import { resetAnnouncementState } from './hooks/useAnnouncements.js'
 import { resetRehearsalControlsState } from './hooks/useRehearsalControls.js'
+import { clockService } from './services/clock.js'
 
 vi.mock('./services/audio.js', async (importOriginal) => {
   const actual = await importOriginal()
@@ -67,6 +68,7 @@ describe('App GO LIVE flow', () => {
     vi.useRealTimers()
     delete navigator.wakeLock
     vi.restoreAllMocks()
+    clockService.clearVirtual()
   })
 
   it('unlocks audio as part of the GO LIVE gesture and switches to the live screen', () => {
@@ -100,6 +102,21 @@ describe('App GO LIVE flow', () => {
 
     expect(screen.getByRole('button', { name: 'GO LIVE →' })).toBeInTheDocument()
     expect(screen.queryByTestId('event-list')).not.toBeInTheDocument()
+  })
+
+  it('ends an active rehearsal when "← Setup" is tapped, returning to the real clock', () => {
+    clockService.setVirtual(Date.parse('2026-08-12T16:45:00Z'), 1)
+    render(<App />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'GO LIVE →' }))
+    expect(clockService.isRehearsal()).toBe(true)
+
+    fireEvent.click(screen.getByRole('button', { name: '← Setup' }))
+
+    // Coming back to setup mid-rehearsal means the practice run is over —
+    // the striped banner must be gone and the countdown back on real time.
+    expect(clockService.isRehearsal()).toBe(false)
+    expect(screen.queryByText('REHEARSAL — NOT LIVE')).not.toBeInTheDocument()
   })
 })
 

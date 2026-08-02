@@ -4,7 +4,10 @@ import RehearsalPanel, { RehearsalBanner } from './RehearsalPanel.jsx'
 import { clockService } from '../services/clock.js'
 import { C1, C2, C3, C4 } from '../data/timeline.js'
 import { resetAnnouncementState } from '../hooks/useAnnouncements.js'
-import { resetRehearsalControlsState } from '../hooks/useRehearsalControls.js'
+import {
+  resetRehearsalControlsState,
+  resetRehearsalSession,
+} from '../hooks/useRehearsalControls.js'
 
 vi.mock('../hooks/useAnnouncements.js', () => ({
   resetAnnouncementState: vi.fn(),
@@ -363,6 +366,31 @@ describe('RehearsalPanel pause, resume, and reset', () => {
     vi.advanceTimersByTime(1000)
 
     expect(clockService.now()).toBe(pausedAt + 10_000)
+  })
+})
+
+describe('resetRehearsalSession', () => {
+  afterEach(() => {
+    clockService.clearVirtual()
+  })
+
+  it('ends an active rehearsal: real clock restored, announcement state reset', () => {
+    clockService.setVirtual(Date.parse(C2), 1)
+    resetAnnouncementState.mockClear()
+
+    resetRehearsalSession()
+
+    expect(clockService.isRehearsal()).toBe(false)
+    expect(resetAnnouncementState).toHaveBeenCalled()
+  })
+
+  it('is a strict no-op outside rehearsal — a real-session detour must never clear announcement state', () => {
+    resetAnnouncementState.mockClear()
+
+    resetRehearsalSession()
+
+    expect(clockService.isRehearsal()).toBe(false)
+    expect(resetAnnouncementState).not.toHaveBeenCalled()
   })
 })
 

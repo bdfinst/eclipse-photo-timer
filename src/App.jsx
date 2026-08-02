@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { getItem, setItem } from './services/storage.js'
 import { unlockAudio } from './services/audio.js'
 import { audioStatusFromResult } from './hooks/useAudioUnlock.js'
+import { resetRehearsalSession } from './hooks/useRehearsalControls.js'
 import PrepScreen from './screens/PrepScreen.jsx'
 import LiveScreen from './screens/LiveScreen.jsx'
 
@@ -37,6 +38,10 @@ function App() {
   }
 
   function handleBackToPrep() {
+    // Returning to setup mid-rehearsal ends the practice run (real clock,
+    // fresh announcement/transport state). A real-clock session is a
+    // strict no-op — see resetRehearsalSession's docstring.
+    resetRehearsalSession()
     setScreen('prep')
   }
 

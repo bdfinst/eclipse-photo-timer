@@ -1,10 +1,19 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { playTone, shouldAnnounce, speak, unlockAudio } from './audio.js'
+import {
+  VOICE_NAME_KEY,
+  playTone,
+  resetSharedAudioContextForTests,
+  shouldAnnounce,
+  speak,
+  unlockAudio,
+} from './audio.js'
+import { setItem } from './storage.js'
 
 describe('audio: speak', () => {
   let synth
 
   beforeEach(() => {
+    localStorage.clear()
     synth = {
       cancel: vi.fn(),
       speak: vi.fn(),
@@ -40,14 +49,89 @@ describe('audio: speak', () => {
     expect(result).toEqual({ ok: false, reason: 'unsupported' })
     expect(synth.speak).not.toHaveBeenCalled()
   })
+
+  function spokenVoice() {
+    return synth.speak.mock.calls[0][0].voice
+  }
+
+  it('prefers a female en-GB voice over a male en-GB voice listed first', () => {
+    const daniel = { name: 'Daniel', lang: 'en-GB' }
+    const martha = { name: 'Martha', lang: 'en-GB' }
+    synth.getVoices.mockReturnValue([daniel, martha])
+
+    speak('Filter off')
+
+    expect(spokenVoice()).toBe(martha)
+  })
+
+  it('prefers a female en-US voice over a male en-GB one — the accent is the tiebreaker, not the requirement', () => {
+    const daniel = { name: 'Daniel', lang: 'en-GB' }
+    const samantha = { name: 'Samantha', lang: 'en-US' }
+    synth.getVoices.mockReturnValue([daniel, samantha])
+
+    speak('Filter off')
+
+    expect(spokenVoice()).toBe(samantha)
+  })
+
+  it("matches Google's explicitly-gendered voice names", () => {
+    const male = { name: 'Google UK English Male', lang: 'en-GB' }
+    const female = { name: 'Google UK English Female', lang: 'en-GB' }
+    synth.getVoices.mockReturnValue([male, female])
+
+    speak('Filter off')
+
+    expect(spokenVoice()).toBe(female)
+  })
+
+  it('falls back to the first en-GB voice when no recognized female name is present', () => {
+    const daniel = { name: 'Daniel', lang: 'en-GB' }
+    const fred = { name: 'Fred', lang: 'en-US' }
+    synth.getVoices.mockReturnValue([fred, daniel])
+
+    speak('Filter off')
+
+    expect(spokenVoice()).toBe(daniel)
+  })
+
+  it('leaves the voice unset (browser default) when no English voice exists at all', () => {
+    synth.getVoices.mockReturnValue([{ name: 'Anna', lang: 'de-DE' }])
+
+    speak('Filter off')
+
+    expect(spokenVoice()).toBeUndefined()
+  })
+
+  it('uses the explicitly-chosen settings voice over the auto preference', () => {
+    const martha = { name: 'Martha', lang: 'en-GB' }
+    const daniel = { name: 'Daniel', lang: 'en-GB' }
+    synth.getVoices.mockReturnValue([martha, daniel])
+    setItem(VOICE_NAME_KEY, 'Daniel')
+
+    speak('Filter off')
+
+    expect(spokenVoice()).toBe(daniel)
+  })
+
+  it('falls back to the auto preference when the chosen voice is not installed on this device', () => {
+    const martha = { name: 'Martha', lang: 'en-GB' }
+    synth.getVoices.mockReturnValue([martha])
+    setItem(VOICE_NAME_KEY, 'Daniel')
+
+    speak('Filter off')
+
+    expect(spokenVoice()).toBe(martha)
+  })
 })
 
 function createMockAudioContext() {
   const oscillators = []
+  const instances = []
 
   function AudioContextMock() {
     this.currentTime = 0
     this.destination = {}
+    instances.push(this)
   }
 
   AudioContextMock.prototype.createOscillator = function () {
@@ -66,15 +150,20 @@ function createMockAudioContext() {
     return { gain: { value: 0 }, connect: vi.fn() }
   }
 
-  return { AudioContextMock, oscillators }
+  return { AudioContextMock, oscillators, instances }
 }
 
 describe('audio: playTone', () => {
   let oscillators
+  let instances
 
   beforeEach(() => {
+    // The shared context is module-level state — drop it so each test's
+    // freshly-installed mock class is actually the one constructed.
+    resetSharedAudioContextForTests()
     const mock = createMockAudioContext()
     oscillators = mock.oscillators
+    instances = mock.instances
     window.AudioContext = mock.AudioContextMock
   })
 
@@ -125,6 +214,28 @@ describe('audio: playTone', () => {
     const result = playTone('non-critical-due')
 
     expect(result).toEqual({ ok: false, reason: 'unsupported' })
+  })
+
+  it('reuses one shared AudioContext across calls — browsers cap concurrent contexts, and announcements fire all day', () => {
+    playTone('non-critical-due')
+    playTone('critical-warning')
+    playTone('filter-toggle')
+
+    expect(instances).toHaveLength(1)
+  })
+
+  it('resumes a suspended shared context before scheduling, so tones fired outside a user gesture stay audible', () => {
+    playTone('non-critical-due')
+    const [ctx] = instances
+    ctx.state = 'suspended'
+    ctx.resume = vi.fn()
+
+    playTone('critical-warning')
+
+    expect(ctx.resume).toHaveBeenCalled()
+    // The tone is scheduled regardless — it sounds the moment the resume
+    // takes effect, rather than being dropped.
+    expect(oscillators).toHaveLength(2)
   })
 })
 
@@ -179,6 +290,7 @@ describe('audio: unlockAudio', () => {
   let synth
 
   beforeEach(() => {
+    resetSharedAudioContextForTests()
     synth = {
       cancel: vi.fn(),
       speak: vi.fn(),

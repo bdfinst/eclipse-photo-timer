@@ -195,27 +195,32 @@ function PrepScreen({ onGoLive }) {
 
   return (
     <div className="min-h-dvh pb-24">
-      <RehearsalBanner />
-
-      <div className="mx-auto flex max-w-md items-center justify-between px-3 pt-3">
-        <button
-          ref={menuButtonRef}
-          type="button"
-          aria-label="Menu"
-          className={ICON_BUTTON_CLASS}
-          onClick={() => setMenuOpen(true)}
-        >
-          <MenuIcon />
-        </button>
-        <button
-          ref={gearButtonRef}
-          type="button"
-          aria-label="Settings"
-          className={ICON_BUTTON_CLASS}
-          onClick={() => setSettingsOpen(true)}
-        >
-          <GearIcon />
-        </button>
+      {/* Sticky as one unit so the menu/settings controls never scroll
+          away — and, while rehearsing, the warning stripe stays pinned
+          with them instead of disappearing off the top of a long
+          checklist. */}
+      <div className="sticky top-0 z-10 bg-void/85 backdrop-blur-sm">
+        <RehearsalBanner />
+        <div className="mx-auto flex max-w-md items-center justify-between px-3 py-3">
+          <button
+            ref={menuButtonRef}
+            type="button"
+            aria-label="Menu"
+            className={ICON_BUTTON_CLASS}
+            onClick={() => setMenuOpen(true)}
+          >
+            <MenuIcon />
+          </button>
+          <button
+            ref={gearButtonRef}
+            type="button"
+            aria-label="Settings"
+            className={ICON_BUTTON_CLASS}
+            onClick={() => setSettingsOpen(true)}
+          >
+            <GearIcon />
+          </button>
+        </div>
       </div>
 
       {view === 'home' ? (

@@ -6,7 +6,11 @@ import {
   AUDIO_MASTER_KEY,
   AUDIO_TONES_KEY,
   AUDIO_VOICE_KEY,
+  VOICE_AUTO,
+  VOICE_NAME_KEY,
+  listEnglishVoices,
   playTone,
+  primeAudio,
   speak,
 } from '../services/audio.js'
 
@@ -69,11 +73,52 @@ function SettingsPanel() {
   const [audioVoiceOn, toggleAudioVoice] = useSettingToggle(AUDIO_VOICE_KEY)
   const [audioTonesOn, toggleAudioTones] = useSettingToggle(AUDIO_TONES_KEY)
   const [keepAwakeOn, toggleKeepAwake] = useSettingToggle(KEEP_AWAKE_KEY)
+  const [voiceName, setVoiceName] = useState(() => {
+    const raw = getItem(VOICE_NAME_KEY, VOICE_AUTO)
+    return typeof raw === 'string' ? raw : VOICE_AUTO
+  })
+  const [voices, setVoices] = useState(() => listEnglishVoices())
 
   useEffect(() => {
     const intervalId = setInterval(() => setDeviceTime(new Date()), 1000)
     return () => clearInterval(intervalId)
   }, [])
+
+  // Some browsers populate getVoices() only after the async 'voiceschanged'
+  // event — refresh the picker's options when it fires.
+  useEffect(() => {
+    const synth = typeof window !== 'undefined' ? window.speechSynthesis : undefined
+    if (!synth?.addEventListener) {
+      return undefined
+    }
+
+    function refreshVoices() {
+      setVoices(listEnglishVoices())
+    }
+
+    synth.addEventListener('voiceschanged', refreshVoices)
+    return () => synth.removeEventListener('voiceschanged', refreshVoices)
+  }, [])
+
+  // A stored voice can be missing from this device's installed set (chosen
+  // on another device, or getVoices() not yet populated) — pickVoice falls
+  // back to auto in that case, so the picker must SHOW Auto too rather
+  // than rendering a blank value.
+  const selectedVoiceName = voices.some((voice) => voice.name === voiceName)
+    ? voiceName
+    : VOICE_AUTO
+
+  function handleVoiceChange(event) {
+    const nextName = event.target.value
+    setVoiceName(nextName)
+    setItem(VOICE_NAME_KEY, nextName)
+    // Audition the choice immediately (the change event is a user gesture,
+    // so speech is permitted) — but only when the toggles would let the
+    // live screen speak at all, same contract as the Test audio button.
+    if (audioMasterOn && audioVoiceOn) {
+      speak('Audio ready')
+    }
+  }
 
   function adjustOffset(deltaMs) {
     const next = offsetMs + deltaMs
@@ -87,7 +132,27 @@ function SettingsPanel() {
   }
 
   function testAudio() {
-    speak('Audio ready')
+    // Runs inside the tap gesture: creates/resumes the shared AudioContext
+    // so the setTimeout-scheduled cues below play on a running context
+    // instead of being silenced by autoplay policy (the timeout callback
+    // itself is NOT a user gesture).
+    primeAudio()
+
+    // Play exactly what the live screen would be allowed to play — the
+    // whole point of this button is verifying the eclipse-day audio
+    // configuration, toggles included.
+    if (!audioMasterOn) {
+      return
+    }
+
+    if (audioVoiceOn) {
+      speak('Audio ready')
+    }
+
+    if (!audioTonesOn) {
+      return
+    }
+
     AUDIO_CUES.forEach((cue, index) => {
       setTimeout(() => playTone(cue), index * TEST_AUDIO_CUE_GAP_MS)
     })
@@ -136,6 +201,28 @@ function SettingsPanel() {
         >
           Reset
         </button>
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label
+          htmlFor="speaking-voice"
+          className="font-mono text-[0.65rem] tracking-[0.3em] uppercase text-dim"
+        >
+          Speaking voice
+        </label>
+        <select
+          id="speaking-voice"
+          value={selectedVoiceName}
+          onChange={handleVoiceChange}
+          className="min-h-11 w-full border border-line bg-void px-2 text-sm text-ink"
+        >
+          <option value={VOICE_AUTO}>Auto — female voice, UK English preferred</option>
+          {voices.map((voice) => (
+            <option key={voice.name} value={voice.name}>
+              {voice.name} ({voice.lang === 'en-GB' ? 'UK' : 'US'})
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="flex flex-col border-y border-line/60">
