@@ -115,13 +115,15 @@ function LiveScreen({ initialAudioStatus = 'pending', onBack }) {
   }
 
   return (
-    <div>
+    // pt: with viewport-fit=cover the page extends under the iOS status
+    // bar — start the live content below it (resolves to 0 with no inset).
+    <div className="pt-[env(safe-area-inset-top)]">
       <RehearsalBanner />
       {onBack && (
         <button
           type="button"
           onClick={onBack}
-          className="fixed top-2 right-2 z-10 rounded bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-white"
+          className="fixed right-2 top-[max(env(safe-area-inset-top),0.5rem)] z-10 rounded bg-slate-800/80 px-3 py-1.5 text-xs font-semibold text-white"
         >
           ← Setup
         </button>

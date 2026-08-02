@@ -194,12 +194,15 @@ function PrepScreen({ onGoLive }) {
   useEscapeToClose(menuOpen || settingsOpen, settingsOpen ? closeSettings : closeMenu)
 
   return (
-    <div className="min-h-dvh pb-24">
+    <div className="flex min-h-dvh flex-col pb-[max(env(safe-area-inset-bottom),1rem)]">
       {/* Sticky as one unit so the menu/settings controls never scroll
           away — and, while rehearsing, the warning stripe stays pinned
           with them instead of disappearing off the top of a long
           checklist. */}
-      <div className="sticky top-0 z-10 bg-void/85 backdrop-blur-sm">
+      {/* pt: with viewport-fit=cover the page extends under the iOS status
+          bar — the sticky unit's background fills that area and its
+          content starts below it. Resolves to 0 where there is no inset. */}
+      <div className="sticky top-0 z-10 bg-void/85 pt-[env(safe-area-inset-top)] backdrop-blur-sm">
         <RehearsalBanner />
         <div className="mx-auto flex max-w-md items-center justify-between px-3 py-3">
           <button
@@ -225,23 +228,27 @@ function PrepScreen({ onGoLive }) {
 
       {view === 'home' ? (
         <>
-          <header className="mx-auto flex max-w-md flex-col items-center px-4 pt-6 text-center">
-            <h1 className="rise font-display text-2xl font-medium tracking-[0.45em] uppercase text-ink">
+          {/* flex-1 + justify-center: the hero floats centered in whatever
+              height is left between the sticky bar and the status block, so
+              the whole home view fits one phone viewport (no scrolling)
+              instead of stacking fixed margins past the fold. */}
+          <header className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center px-4 py-2 text-center">
+            <h1 className="rise font-display text-xl font-medium tracking-[0.45em] uppercase text-ink">
               Eclipse Timer
             </h1>
-            <p className="rise mt-2 font-mono text-[0.65rem] tracking-[0.3em] uppercase text-dim [animation-delay:80ms]">
+            <p className="rise mt-1 font-mono text-[0.65rem] tracking-[0.3em] uppercase text-dim [animation-delay:80ms]">
               Total solar eclipse · Ólafsvík · 12 Aug 2026
             </p>
 
             <div
               aria-hidden="true"
-              className="rise relative mt-10 mb-9 h-36 w-36 [animation-delay:160ms]"
+              className="rise relative mt-6 mb-6 h-28 w-28 [animation-delay:160ms]"
             >
               <div className="corona-glow absolute -inset-3 rounded-full" />
               <div className="moon-disc absolute inset-0 rounded-full" />
             </div>
 
-            <p className="rise font-mono text-[clamp(2.3rem,10.5vw,3.4rem)] font-semibold tracking-tight tabular-nums [animation-delay:240ms]">
+            <p className="rise font-mono text-[clamp(2rem,9vw,2.9rem)] font-semibold tracking-tight tabular-nums [animation-delay:240ms]">
               {countdown}
             </p>
             <p className="rise mt-1 font-mono text-[0.65rem] tracking-[0.3em] uppercase text-corona/80 [animation-delay:300ms]">
@@ -251,16 +258,16 @@ function PrepScreen({ onGoLive }) {
             <button
               type="button"
               onClick={onGoLive}
-              className="rise mt-9 w-full max-w-sm border border-corona bg-corona px-6 py-4 font-display text-3xl font-bold tracking-[0.3em] uppercase text-black shadow-[0_0_28px_rgb(255_179_71/0.35)] transition hover:bg-ember hover:shadow-[0_0_44px_rgb(255_139_61/0.5)] active:translate-y-px [animation-delay:360ms]"
+              className="rise mt-6 w-full max-w-sm border border-corona bg-corona px-6 py-3 font-display text-2xl font-bold tracking-[0.3em] uppercase text-black shadow-[0_0_28px_rgb(255_179_71/0.35)] transition hover:bg-ember hover:shadow-[0_0_44px_rgb(255_139_61/0.5)] active:translate-y-px [animation-delay:360ms]"
             >
               GO LIVE →
             </button>
           </header>
 
-          <main className="mx-auto mt-10 w-full max-w-md px-4">
+          <main className="mx-auto w-full max-w-md px-4">
             <section className="rise border border-line bg-panel/70 [animation-delay:420ms]">
               <h2
-                className={`flex min-h-12 items-center border-b border-line px-4 ${PANEL_HEADER_CLASS}`}
+                className={`flex min-h-10 items-center border-b border-line px-4 ${PANEL_HEADER_CLASS}`}
               >
                 Setup status
               </h2>
@@ -269,7 +276,7 @@ function PrepScreen({ onGoLive }) {
                   key={group.id}
                   type="button"
                   onClick={() => openSection('checklist')}
-                  className="flex min-h-13 w-full items-center gap-3 border-b border-line/60 px-4 text-left transition-colors last:border-0 hover:bg-void/40"
+                  className="flex min-h-11 w-full items-center gap-3 border-b border-line/60 px-4 text-left transition-colors last:border-0 hover:bg-void/40"
                 >
                   {/* Completion styling keys on done === total, not the
                       rounded percent — a big-enough group would round to
@@ -362,7 +369,7 @@ function PrepScreen({ onGoLive }) {
           <div className="absolute inset-0 bg-black/70" onClick={closeMenu} />
           <nav
             aria-label="Sections"
-            className="absolute top-0 left-0 flex h-full w-72 flex-col border-r border-line bg-panel p-3"
+            className="absolute top-0 left-0 flex h-full w-72 flex-col border-r border-line bg-panel p-3 pt-[max(env(safe-area-inset-top),0.75rem)]"
           >
             <div className="mb-2 flex items-center justify-between pl-2">
               <span className={PANEL_HEADER_CLASS}>Sections</span>
