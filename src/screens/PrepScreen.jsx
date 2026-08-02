@@ -6,15 +6,19 @@ import { CHECKLIST_STORAGE_KEY, checklistProgress } from '../data/checklist.js'
 import { formatDuration } from '../lib/formatDuration.js'
 import { formatUtcTime } from '../lib/formatTime.js'
 import { getItem } from '../services/storage.js'
+import CameraSettingsReference from '../components/CameraSettingsReference.jsx'
 import ChecklistSection from '../components/ChecklistSection.jsx'
 import SettingsPanel from '../components/SettingsPanel.jsx'
 import RehearsalPanel, { RehearsalBanner } from '../components/RehearsalPanel.jsx'
 
-// Verbatim from eclipse-timer-spec.md §5.3 — do not reformat the numbers.
+// Originally verbatim from eclipse-timer-spec.md §5.3 — do not reformat the
+// numbers. The C3 line was updated to the operator's field card v4
+// (src/data/cameraSettings.js), which supersedes the spec's earlier manual
+// earthshine sweep (1.3"/2.5"/5") with a single 5-frame HDR bracket.
 const REFERENCE_CARD_LINES = [
   'Bracket (C2): base 1/50 → 1/3200 · 1/800 · 1/200 · 1/50 · 1/13 · 0.3" · 1.3"',
   'Partial (C1, filter on): 1/400   |   Diamond ring (C4): 1/2500',
-  'Earthshine (C3, ISO 1600): 1.3" / 2.5" / 5"',
+  'Outer corona (C3, ISO 1600): base 1/6 → 1/100 · 1/25 · 1/6 · 0.6" · 2.5"',
   'Zoom 250 = corona (2.8 × 3.8 Rs)  ·  Zoom 500 = prominences (1.4 × 1.9 Rs)',
 ]
 
@@ -323,7 +327,7 @@ function PrepScreen({ onGoLive }) {
               >
                 Reference card
               </h2>
-              <div className="px-4 py-2">
+              <div className="border-b border-line px-4 py-2">
                 {REFERENCE_CARD_LINES.map((line) => (
                   <p
                     key={line}
@@ -332,6 +336,9 @@ function PrepScreen({ onGoLive }) {
                     {line}
                   </p>
                 ))}
+              </div>
+              <div className="px-4 py-4">
+                <CameraSettingsReference />
               </div>
             </section>
           )}

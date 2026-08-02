@@ -199,9 +199,28 @@ describe('PrepScreen reference card', () => {
     expect(
       screen.getByText('Partial (C1, filter on): 1/400 | Diamond ring (C4): 1/2500'),
     ).toBeInTheDocument()
-    expect(screen.getByText('Earthshine (C3, ISO 1600): 1.3" / 2.5" / 5"')).toBeInTheDocument()
+    // C3 line matches the field card v4's 5-frame HDR bracket, which
+    // superseded the spec's earlier manual earthshine sweep.
+    expect(
+      screen.getByText('Outer corona (C3, ISO 1600): base 1/6 → 1/100 · 1/25 · 1/6 · 0.6" · 2.5"'),
+    ).toBeInTheDocument()
     expect(
       screen.getByText('Zoom 250 = corona (2.8 × 3.8 Rs) · Zoom 500 = prominences (1.4 × 1.9 Rs)'),
+    ).toBeInTheDocument()
+  })
+
+  it('composes the full camera-settings reference below the quick exposure lines', () => {
+    render(<PrepScreen />)
+
+    fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Reference card' }))
+
+    expect(screen.getByText('Global — set once')).toBeInTheDocument()
+    expect(screen.getByText('C2 — Totality bracket')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'FILTER ON for every second outside totality. OFF only between 2nd and 3rd contact.',
+      ),
     ).toBeInTheDocument()
   })
 })
