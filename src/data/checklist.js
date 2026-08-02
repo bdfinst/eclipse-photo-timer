@@ -29,17 +29,9 @@ export const CHECKLIST_GROUPS = [
     title: 'The night before',
     items: [
       { id: 'night-battery', text: 'Charge camera battery + two spares' },
-      { id: 'night-power-bank', text: 'Charge the ≥27 W USB-C PD power bank' },
+      { id: 'night-power-bank', text: 'Charge Sharge power bank' },
       { id: 'night-card', text: 'Format a 64 GB+ UHS-II card, in slot 1' },
-      {
-        id: 'night-hdr-bracket',
-        text: 'Confirm HDR bracket 7f 2.0EV fires seven RAWs including the 1.6 s frame',
-      },
       { id: 'night-procap', text: 'Confirm ProCap SH2 works with the MC-20 attached' },
-      {
-        id: 'night-jjc',
-        text: 'Confirm the JJC will accept N = 826 (if not, use built-in Interval Shooting)',
-      },
       {
         id: 'night-meter',
         text: 'Meter the solar filter: 1/320 at ISO 200, f/13 should be correct',
