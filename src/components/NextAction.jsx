@@ -14,7 +14,7 @@ function NextAction({ event, now }) {
   const secondsRemaining = Math.ceil((Date.parse(event.at) - now) / 1000)
 
   return (
-    <div>
+    <div data-testid="next-action">
       <p className="text-lg font-semibold">{event.title}</p>
       <Countdown secondsRemaining={secondsRemaining} />
     </div>
