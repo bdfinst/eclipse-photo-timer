@@ -53,6 +53,8 @@ function scheduleTone(ctx, freq, durationMs, gain = 1, startTime = ctx.currentTi
   return oscillator
 }
 
+export const AUDIO_CUES = ['non-critical-due', 'critical-warning', 'critical-due', 'filter-toggle']
+
 const CUE_SCHEDULES = {
   'non-critical-due': (ctx) => scheduleTone(ctx, 660, 120),
   'critical-warning': (ctx) => scheduleTone(ctx, 880, 80),
