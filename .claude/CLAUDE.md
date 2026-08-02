@@ -29,7 +29,7 @@ no semicolons, 2-space indent (see `prettier.config.js` / `.editorconfig`).
 `front-end-testing`.
 
 **Icon regeneration**: edit `scripts/icon-source.svg`, then run
-`node scripts/generate-icons.mjs` to rewrite `public/icons/*.png`. Commit the
+`node scripts/generate-icons.js` to rewrite `public/icons/*.png`. Commit the
 regenerated PNGs alongside the SVG change.
 
 **Code intelligence**: CodeGraph and Repowise are initialized for this repo

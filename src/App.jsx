@@ -10,7 +10,10 @@ export const HOME_SCREEN_BANNER_TEXT =
   'Add to Home Screen and open it once offline before you travel.'
 
 function App() {
-  const [showHomeScreenBanner, setShowHomeScreenBanner] = useState(false)
+  // Computed once, directly, from the persisted flag — not derived via an
+  // effect-triggered setState (avoids a same-mount extra re-render, and the
+  // banner's own visibility never needs to change reactively afterward).
+  const [showHomeScreenBanner] = useState(() => !getItem(HOME_SCREEN_BANNER_SEEN_KEY, false))
   const [screen, setScreen] = useState('prep')
   // Carried into LiveScreen so a warning chip can render immediately if the
   // GO LIVE gesture's unlock attempt failed — the gesture already happened
@@ -19,11 +22,10 @@ function App() {
   const [audioStatus, setAudioStatus] = useState('pending')
 
   useEffect(() => {
-    if (!getItem(HOME_SCREEN_BANNER_SEEN_KEY, false)) {
-      setShowHomeScreenBanner(true)
+    if (showHomeScreenBanner) {
       setItem(HOME_SCREEN_BANNER_SEEN_KEY, true)
     }
-  }, [])
+  }, [showHomeScreenBanner])
 
   function handleGoLive() {
     const result = unlockAudio()

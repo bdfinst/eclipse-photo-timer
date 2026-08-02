@@ -1,6 +1,6 @@
 // One-time script: rasterizes the hand-authored black-disc/white-corona-ring
 // SVG (icon-source.svg) into the three PWA icon PNGs required by spec §9.
-// Run with: node scripts/generate-icons.mjs
+// Run with: node scripts/generate-icons.js
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { mkdir, readFile } from 'node:fs/promises'
 import path from 'node:path'

@@ -4,10 +4,10 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import sharp from 'sharp'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { generateIcons } from './generate-icons.mjs'
+import { generateIcons } from './generate-icons.js'
 
 // Independently authored from spec §9 — deliberately NOT imported from
-// generate-icons.mjs, so a drift in that module's own ICON_TARGETS would
+// generate-icons.js, so a drift in that module's own ICON_TARGETS would
 // fail this test instead of passing by circular self-reference.
 const EXPECTED_TARGETS = [
   { file: 'icon-192.png', size: 192 },
