@@ -77,12 +77,17 @@ function LiveScreen({ initialAudioStatus = 'pending', onBack }) {
   const showTotalityBlock = isTotalityBlockVisible({ activeEvent, nextEvent })
 
   // While the totality block is showing, its 10 events are rendered there
-  // instead of here, so they don't appear twice.
-  const listEvents = useMemo(
-    () =>
-      showTotalityBlock ? EVENTS.filter((event) => !TOTALITY_BLOCK_ID_SET.has(event.id)) : EVENTS,
-    [showTotalityBlock],
-  )
+  // instead of here, so they don't appear twice. Completed steps leave the
+  // scrolling list entirely — the current step rides at the top instead of
+  // sinking mid-list beneath a pile of past cards. (The totality block is
+  // deliberately exempt: spec §6.3's "all nine simultaneously visible" is
+  // the whole point of that block, so its past cards gray out in place.)
+  const listEvents = useMemo(() => {
+    const base = showTotalityBlock
+      ? EVENTS.filter((event) => !TOTALITY_BLOCK_ID_SET.has(event.id))
+      : EVENTS
+    return base.filter((event) => !pastEventIds.has(event.id))
+  }, [showTotalityBlock, pastEventIds])
 
   // The card auto-scroll keeps centred: the active event, or (before the
   // timeline starts, or after it ends) whichever card is standing in for

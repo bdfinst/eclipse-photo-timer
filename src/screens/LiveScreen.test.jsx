@@ -709,3 +709,60 @@ describe('LiveScreen back-to-setup button', () => {
     expect(onBack).toHaveBeenCalledTimes(1)
   })
 })
+
+describe('LiveScreen event list — completed steps removed', () => {
+  beforeEach(() => {
+    localStorage.clear()
+    vi.useFakeTimers()
+    navigator.wakeLock = { request: vi.fn().mockResolvedValue({ release: vi.fn() }) }
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+    delete navigator.wakeLock
+    vi.restoreAllMocks()
+  })
+
+  it('drops completed steps from the list so the active step renders first', () => {
+    // check-1 (17:00:00Z) is active: setup through c1 are all in the past
+    // and must no longer occupy the top of the list.
+    vi.setSystemTime(Date.parse('2026-08-12T17:00:30Z'))
+
+    render(<LiveScreen />)
+    const list = within(screen.getByTestId('event-list'))
+
+    expect(list.queryByText('Set up and polar align')).not.toBeInTheDocument()
+    expect(list.queryByText('First contact — start the timer')).not.toBeInTheDocument()
+
+    const firstCard = screen.getByTestId('event-list').firstElementChild
+    expect(firstCard).toHaveTextContent('Quiet check')
+    expect(firstCard).toHaveTextContent('17:00:00')
+  })
+
+  it('keeps past totality cards visible in the block (spec §6.3) while past non-block steps leave the list', () => {
+    // Mid-totality (earth-2 active): the block must still show the WHOLE
+    // sequence, c2 included, even though c2 is past — while already-passed
+    // pre-totality steps are gone from the scrolling list.
+    vi.setSystemTime(Date.parse('2026-08-12T17:46:50Z'))
+
+    render(<LiveScreen />)
+
+    const block = within(screen.getByTestId('totality-block'))
+    expect(block.getByText('FILTER OFF — diamond ring')).toBeInTheDocument()
+    expect(block.getByText('Bracket burst 1')).toBeInTheDocument()
+
+    const list = within(screen.getByTestId('event-list'))
+    expect(list.queryByText('Final check — hand on the filter')).not.toBeInTheDocument()
+    expect(list.queryByText('Arm the timer')).not.toBeInTheDocument()
+  })
+
+  it('leaves only the final step once the timeline is done', () => {
+    vi.setSystemTime(Date.parse('2026-08-12T19:00:00Z'))
+
+    render(<LiveScreen />)
+    const list = screen.getByTestId('event-list')
+
+    expect(list.children).toHaveLength(1)
+    expect(list.firstElementChild).toHaveTextContent('Fourth contact — done')
+  })
+})
