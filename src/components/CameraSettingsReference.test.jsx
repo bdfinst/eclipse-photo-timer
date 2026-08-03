@@ -63,6 +63,10 @@ describe('CameraSettingsReference', () => {
     }
     expect(screen.getByText('chromosphere')).toBeInTheDocument()
     expect(screen.getByText('0.2 Rs + diamond')).toBeInTheDocument()
+    // The +6EV frame is honest about the 1.4 Rs frame limit (reference-card
+    // text change request §2): 'frame edge', never 'corona 4.0 Rs'.
+    expect(screen.getAllByText('frame edge')).toHaveLength(2)
+    expect(screen.queryByText(/corona [48]\.0 Rs/)).not.toBeInTheDocument()
   })
 
   it("renders C3's five-frame ladder ending at the earthshine stretch goal", () => {
@@ -74,6 +78,8 @@ describe('CameraSettingsReference', () => {
       expect(screen.getByText(shutter)).toBeInTheDocument()
     }
     expect(screen.getByText('earthshine')).toBeInTheDocument()
+    // +2EV overexposes the eclipsed lunar disk, not 8.0 Rs corona (§3).
+    expect(screen.getByText('lunar disk')).toBeInTheDocument()
   })
 
   it('renders the filter rule warning', () => {

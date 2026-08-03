@@ -1,10 +1,12 @@
 /**
  * Camera-settings reference — transcribed from the operator's field card
  * (Eclipse_2026_OM1_Field_Card_4.pdf, page 1, "CAMERA SETTINGS"), as
- * amended by the fixed-focal change request
- * (eclipse-timer-CHANGE-fixed-focal.md): zoom locked at the 500 mark,
- * constant f/13, every exposure shifted ⅓ stop. Numbers are the change
- * request's own — do not recompute them. The exposure ladder DERIVATIONS (page 3's Espenak Q table) and
+ * amended by the operator's change requests: fixed-focal
+ * (eclipse-timer-CHANGE-fixed-focal.md — zoom locked at the 500 mark,
+ * constant f/13, every exposure shifted ⅓ stop), the ramp fix (+⅔ stop,
+ * dial-settle guidance), and the reference-card text correction (ladder
+ * subjects honest about the 1.4 Rs frame). Numbers are the change
+ * requests' own — do not recompute them. The exposure ladder DERIVATIONS (page 3's Espenak Q table) and
  * rig/power notes (page 2) are deliberately not included here — this is
  * the in-field settings reference, not the planning document.
  */
@@ -56,7 +58,7 @@ export const CUSTOM_MODES = [
     tagline: 'filter on · both timer runs and the hand-flown minutes',
     headline: 'ISO 200 · 1/320 · Single drive',
     notes:
-      'Expose off the RGB histogram, not luminance. Ramp +⅔ stop at the 17:42 handover and +1 stop in the last minute before C2 — only the limb is left, ~1.5 stops darker than disk centre. Mirror after C3.',
+      'Expose off the RGB histogram, not luminance. Ramp +⅔ stop at the 17:42 handover and +1 stop at T−60s — by then only the limb is left and it averages 0.83 stops below the full disk. Mirror after C3. Turn the dial slowly and let it settle 5 s before the next frame. Stay in M — A mode meters the black moon once the crescent thins and runs away.',
   },
   {
     id: 'c2',
@@ -70,10 +72,10 @@ export const CUSTOM_MODES = [
       { ev: 'BASE', shutter: '1/40', subject: '0.2 Rs + diamond', base: true },
       { ev: '+2 EV', shutter: '1/10', subject: 'corona 0.5 Rs' },
       { ev: '+4 EV', shutter: '0.4"', subject: 'corona 1.0 Rs' },
-      { ev: '+6 EV', shutter: '1.6"', subject: 'corona 4.0 Rs' },
+      { ev: '+6 EV', shutter: '1.6"', subject: 'frame edge' },
     ],
     notes:
-      'One press, seven RAWs, about two seconds. Not HDR1/HDR2 — those merge to JPEG and lock ISO. The zoom never moves, so nothing is ever re-dialled.',
+      'One press, seven RAWs, about two seconds. Not HDR1/HDR2 — those merge to JPEG and lock ISO. The zoom never moves, so nothing is ever re-dialled. +6EV targets 4.0 Rs, off the 1.4 Rs frame — it rounds out the HDR curve, not new corona.',
   },
   {
     id: 'c3',
@@ -83,8 +85,8 @@ export const CUSTOM_MODES = [
     ladder: [
       { ev: '−4 EV', shutter: '1/80', subject: 'corona 0.5 Rs' },
       { ev: '−2 EV', shutter: '1/20', subject: 'corona 1.0 Rs' },
-      { ev: 'BASE', shutter: '1/5', subject: 'corona 4.0 Rs', base: true },
-      { ev: '+2 EV', shutter: '0.8"', subject: 'corona 8.0 Rs' },
+      { ev: 'BASE', shutter: '1/5', subject: 'frame edge', base: true },
+      { ev: '+2 EV', shutter: '0.8"', subject: 'lunar disk' },
       { ev: '+4 EV', shutter: '3.2"', subject: 'earthshine' },
     ],
     notes:
