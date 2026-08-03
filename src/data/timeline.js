@@ -138,8 +138,9 @@ export const EVENTS = [
     critical: true,
     filterOn: true,
     title: 'Timer done — you have the camera',
-    speak: 'Timer finished. You have the camera. Open up one half stop.',
-    detail: 'Frame 826 is in. Open +½ stop for limb darkening. Shoot by hand from here.',
+    speak: 'Timer finished. You have the camera. Open up two thirds stop.',
+    detail:
+      'Frame 826 is in. Open +⅔ stop for limb darkening — the visible limb averages 0.83 stops below the full disk. Turn the dial slowly, let it settle 5 s before the next frame.',
   },
 
   {
@@ -151,7 +152,7 @@ export const EVENTS = [
     filterOn: true,
     title: 'Open up one stop',
     detail:
-      'Only the limb is left and it is ~1.5 stops darker than disk centre. One minute to totality.',
+      'Only the limb is left and it is ~1.5 stops darker than disk centre. Turn slowly, let it settle. One minute to totality.',
   },
 
   {
@@ -282,7 +283,7 @@ export const EVENTS = [
     filterOn: true,
     title: 'FILTER ON — eyes away',
     speak: 'Filter on. Filter on now. Eyes away.',
-    detail: 'Third contact. Filter on before the first bead, not after. Then back to +1 stop.',
+    detail: 'Third contact. Filter on before the first bead, not after. Then back to +⅔ stop.',
   },
 
   {
@@ -292,8 +293,8 @@ export const EVENTS = [
     mode: 'C1',
     critical: false,
     filterOn: true,
-    title: 'Back to +½ stop',
-    detail: 'Mirror of the ingress ramp as the crescent widens.',
+    title: 'Back to +⅔ stop',
+    detail: 'Mirror of the ingress ramp as the crescent widens. Dial slowly, let it settle.',
   },
 
   {

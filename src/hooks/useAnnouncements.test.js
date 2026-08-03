@@ -50,6 +50,17 @@ describe('useAnnouncements', () => {
     expect(speak).toHaveBeenLastCalledWith('five seconds')
   })
 
+  it("speaks the handover ramp as 'two thirds stop' at its lead instant (ramp change request §5)", () => {
+    const HANDOVER_AT = Date.parse('2026-08-12T17:42:00Z')
+    const { rerender } = renderAnnouncements(HANDOVER_AT - 10_001)
+
+    act(() => rerender({ now: HANDOVER_AT - 10_000, master: true, voice: true, tones: true }))
+
+    expect(speak).toHaveBeenCalledWith(
+      'Timer finished. You have the camera. Open up two thirds stop.',
+    )
+  })
+
   it('plays a single 660Hz-cue tone with no speech when a non-critical event becomes due (default zero lead)', () => {
     const CHECK1_AT = Date.parse('2026-08-12T17:00:00Z')
     const { rerender } = renderAnnouncements(CHECK1_AT - 1)

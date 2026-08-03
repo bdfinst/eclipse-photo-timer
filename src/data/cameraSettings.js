@@ -56,7 +56,7 @@ export const CUSTOM_MODES = [
     tagline: 'filter on · both timer runs and the hand-flown minutes',
     headline: 'ISO 200 · 1/320 · Single drive',
     notes:
-      'Expose off the RGB histogram, not luminance. Ramp +½ stop at the 17:42 handover and +1 stop in the last minute before C2 — only the limb is left, ~1.5 stops darker than disk centre. Mirror after C3.',
+      'Expose off the RGB histogram, not luminance. Ramp +⅔ stop at the 17:42 handover and +1 stop in the last minute before C2 — only the limb is left, ~1.5 stops darker than disk centre. Mirror after C3.',
   },
   {
     id: 'c2',
