@@ -13,15 +13,15 @@ import SettingsPanel from '../components/SettingsPanel.jsx'
 import RehearsalPanel, { RehearsalBanner } from '../components/RehearsalPanel.jsx'
 import RigReference from '../components/RigReference.jsx'
 
-// Verbatim from the fixed-focal change request (§4, "reference-card
-// accordion") — computed for f/13, locked at the 500 mark. Do not
+// Quick exposure lines per the updated timelapse requirements of
+// 2026-08-12 — computed for 600mm native (no TC), f/8 fixed. Do not
 // recompute or reformat the numbers.
 const REFERENCE_CARD_LINES = [
-  'Zoom LOCKED at the 500 mark all day — 1000mm true, f/13. Never changes.',
-  'C2 bracket (base 1/40): 1/2500 · 1/640 · 1/160 · 1/40 · 1/10 · 0.4" · 1.6"',
-  'C3 bracket (base 1/5): 1/80 · 1/20 · 1/5 · 0.8" · 3.2"  ← 3.2" is the earthshine frame',
-  'Partial (C1, filter on): 1/320   |   Diamond ring (C4): 1/2500',
-  'Frame at 1000mm: sun fills 71% of height, corona to 1.4 × 1.9 Rs.',
+  'Zoom LOCKED at 600mm all day — no TC, f/8. Never changes.',
+  'C2 bracket (base 1/8): 1/125 · 1/30 · 1/8 · 0.5" · 2"  ← 2" is the earthshine frame',
+  'C3 bracket (base 1/60): 1/1000 · 1/250 · 1/60 · 1/15 · 1/4',
+  'Partial (C1, filter on): ~1/1000   |   Diamond ring (C4): 1/2500',
+  'Frame at 600mm: sun fills 43% of height, corona to 2.3 × 3.1 Rs.',
 ]
 
 const C2_MS = Date.parse(C2)

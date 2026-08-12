@@ -7,21 +7,21 @@ import { POWER, ZOOM_MARKS } from '../data/rigReference.js'
 // module — a circular oracle couldn't catch a transcription typo slipping
 // into the data. Source: the operator's field card, page 2.
 describe('RigReference', () => {
-  it('renders the single locked zoom mark — the 250 corona mark is gone with the fixed focal', () => {
+  it('renders the single locked zoom mark — native 600mm, no teleconverter', () => {
     render(<RigReference />)
 
-    expect(ZOOM_MARKS.marks.map((mark) => mark.barrel)).toEqual(['500'])
-    expect(screen.getByText('500 — LOCKED all day — never changes')).toBeInTheDocument()
-    expect(screen.getByText('1000mm true · 2000mm FF · 1.4 × 1.9 Rs in frame')).toBeInTheDocument()
+    expect(ZOOM_MARKS.marks.map((mark) => mark.barrel)).toEqual(['600'])
+    expect(screen.getByText('600 — LOCKED all day — never changes')).toBeInTheDocument()
+    expect(screen.getByText('600mm true · 1200mm FF · 2.3 × 3.1 Rs in frame')).toBeInTheDocument()
     expect(screen.queryByText(/250 —/)).not.toBeInTheDocument()
-    expect(screen.getByText(/Zoom to the 500 mark and tape it/)).toBeInTheDocument()
+    expect(screen.getByText(/Zoom to the 600 stop and tape it/)).toBeInTheDocument()
   })
 
   it('renders the timer program headline', () => {
     render(<RigReference />)
 
-    expect(screen.getByText('DELAY 0 · LONG 1″ · INTVL 4″ · N = 826')).toBeInTheDocument()
-    expect(screen.getByText(/N = 826 makes it stop itself 4 min before C2/)).toBeInTheDocument()
+    expect(screen.getByText('DELAY 0 · LONG 1″ · INTVL 7″ · N = 472')).toBeInTheDocument()
+    expect(screen.getByText(/N = 472 makes it stop itself 4 min before C2/)).toBeInTheDocument()
   })
 
   it('renders the mount guidance', () => {

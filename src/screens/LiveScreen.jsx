@@ -140,7 +140,7 @@ function LiveScreen({ initialAudioStatus = 'pending', onBack }) {
             supposed to be doing something with the lens?" mid-totality
             without the operator having to think. */}
         <p className="px-3 py-1 text-center font-mono text-[0.65rem] tracking-[0.3em] text-dim">
-          ZOOM 500 · f/13 · LOCKED
+          ZOOM 600 · f/8 · LOCKED
         </p>
         <p>
           {formatUtcTime(now)}

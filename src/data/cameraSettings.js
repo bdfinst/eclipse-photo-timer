@@ -1,23 +1,26 @@
 /**
  * Camera-settings reference — transcribed from the operator's field card
  * (Eclipse_2026_OM1_Field_Card_4.pdf, page 1, "CAMERA SETTINGS"), as
- * amended by the operator's change requests: fixed-focal
- * (eclipse-timer-CHANGE-fixed-focal.md — zoom locked at the 500 mark,
- * constant f/13, every exposure shifted ⅓ stop), the ramp fix (+⅔ stop,
- * dial-settle guidance), and the reference-card text correction (ladder
- * subjects honest about the 1.4 Rs frame). Numbers are the change
- * requests' own — do not recompute them. The exposure ladder DERIVATIONS (page 3's Espenak Q table) and
- * rig/power notes (page 2) are deliberately not included here — this is
- * the in-field settings reference, not the planning document.
+ * amended by the operator's change requests, most recently the updated
+ * timelapse requirements of 2026-08-12 ("Eclipse Timelapse Requirements —
+ * Updated"): the MC-20 teleconverter is gone, the lens shoots native at
+ * 600mm, and every mode is fixed at f/8 — shutter and ISO carry the
+ * bracket range, never the aperture. C2 is now the earthshine/outer-corona
+ * set and C3 the prominence/inner-corona set, both 5-frame HDR ladders.
+ * Numbers are the change requests' own — do not recompute them. C1's
+ * shutter is nominal (~1/1000): the requirements pin it to an on-site
+ * test series against the actual filter density (1/1000–1/2000 expected).
+ * The exposure ladder DERIVATIONS and rig/power notes (page 2) are
+ * deliberately not included here — this is the in-field settings
+ * reference, not the planning document.
  */
 
-export const RIG_SUMMARY =
-  'OM-1 · 150-600 + MC-20 · LOCKED at the 500 mark = 1000mm true, f/13 · SafeSight ND 5.0'
+export const RIG_SUMMARY = 'OM-1 · 150-600, no TC · LOCKED at 600mm, f/8 · SafeSight ND 5.0'
 
 /** @type {{ label: string, value: string }[]} */
 export const GLOBAL_SETTINGS = [
   { label: 'Mode', value: 'M, always' },
-  { label: 'Aperture', value: 'Wide open. Never stop down.' },
+  { label: 'Aperture', value: 'f/8, every mode. Never vary it mid-sequence.' },
   { label: 'Quality', value: 'RAW' },
   { label: 'White balance', value: '5400K fixed — never Auto' },
   { label: 'Shutter type', value: '♦ Silent (electronic)' },
@@ -56,41 +59,39 @@ export const CUSTOM_MODES = [
     id: 'c1',
     title: 'Dial C1 — Partial phases',
     tagline: 'filter on · both timer runs and the hand-flown minutes',
-    headline: 'ISO 200 · 1/320 · Single drive',
+    headline: 'ISO 100 · ~1/1000 · Single drive',
     notes:
-      'Expose off the RGB histogram, not luminance. Ramp +⅔ stop at the 17:42 handover and +1 stop at T−60s — by then only the limb is left and it averages 0.83 stops below the full disk. Mirror after C3. Turn the dial slowly and let it settle 5 s before the next frame. Stay in M — A mode meters the black moon once the crescent thins and runs away.',
+      '1/1000 is the nominal — the on-site test series against the filter sets the real value; anywhere in 1/1000–1/2000 is expected. Expose off the RGB histogram, not luminance. Ramp +⅔ stop at the 17:42 handover and +1 stop at T−60s — by then only the limb is left and it averages 0.83 stops below the full disk. Mirror after C3. Turn the dial slowly and let it settle 5 s before the next frame. Stay in M — A mode meters the black moon once the crescent thins and runs away.',
   },
   {
     id: 'c2',
-    title: 'Dial C2 — Totality bracket',
-    tagline: 'the mode that matters · correct at every focal length',
-    headline: 'ISO 200 · base 1/40 · Menu › Shooting 2 › HDR › 7f 2.0EV',
+    title: 'Dial C2 — Earthshine & outer corona',
+    tagline: 'filter off · picks up where dial C3 stops · three windows inside totality',
+    headline: 'ISO 1600 · base 1/8 · Menu › Shooting 2 › HDR › 5f 2.0EV',
     ladder: [
-      { ev: '−6 EV', shutter: '1/2500', subject: 'chromosphere' },
-      { ev: '−4 EV', shutter: '1/640', subject: 'prominences' },
-      { ev: '−2 EV', shutter: '1/160', subject: 'corona 0.1 Rs' },
-      { ev: 'BASE', shutter: '1/40', subject: '0.2 Rs + diamond', base: true },
-      { ev: '+2 EV', shutter: '1/10', subject: 'corona 0.5 Rs' },
-      { ev: '+4 EV', shutter: '0.4"', subject: 'corona 1.0 Rs' },
-      { ev: '+6 EV', shutter: '1.6"', subject: 'frame edge' },
+      { ev: '−4 EV', shutter: '1/125', subject: 'corona 1.0 Rs' },
+      { ev: '−2 EV', shutter: '1/30', subject: 'corona 2.0 Rs' },
+      { ev: 'BASE', shutter: '1/8', subject: 'frame edge', base: true },
+      { ev: '+2 EV', shutter: '0.5"', subject: 'lunar disk' },
+      { ev: '+4 EV', shutter: '2"', subject: 'earthshine' },
     ],
     notes:
-      'One press, seven RAWs, about two seconds. Not HDR1/HDR2 — those merge to JPEG and lock ISO. The zoom never moves, so nothing is ever re-dialled. +6EV targets 4.0 Rs, off the 1.4 Rs frame — it rounds out the HDR curve, not new corona.',
+      'One press, five RAWs out to 2 seconds. Not HDR1/HDR2 — those merge to JPEG and lock ISO. If the on-site series says the slow frames need more, go to ISO 3200 — shutter and ISO carry the range, never the aperture. Do not touch the rig while a set runs. At 600mm the frame tops out at 2.3 Rs vertically — the 2-second frame is earthshine, not more streamer.',
   },
   {
     id: 'c3',
-    title: 'Dial C3 — Outer corona & earthshine',
-    tagline: 'picks up where C2 stops · three attempts inside totality',
-    headline: 'ISO 1600 · base 1/5 · Menu › Shooting 2 › HDR › 5f 2.0EV',
+    title: 'Dial C3 — Prominences & inner corona',
+    tagline: 'filter off · first and last presses of totality',
+    headline: 'ISO 200 · base 1/60 · Menu › Shooting 2 › HDR › 5f 2.0EV',
     ladder: [
-      { ev: '−4 EV', shutter: '1/80', subject: 'corona 0.5 Rs' },
-      { ev: '−2 EV', shutter: '1/20', subject: 'corona 1.0 Rs' },
-      { ev: 'BASE', shutter: '1/5', subject: 'frame edge', base: true },
-      { ev: '+2 EV', shutter: '0.8"', subject: 'lunar disk' },
-      { ev: '+4 EV', shutter: '3.2"', subject: 'earthshine' },
+      { ev: '−4 EV', shutter: '1/1000', subject: 'chromosphere' },
+      { ev: '−2 EV', shutter: '1/250', subject: 'prominences' },
+      { ev: 'BASE', shutter: '1/60', subject: 'corona 0.1 Rs', base: true },
+      { ev: '+2 EV', shutter: '1/15', subject: 'corona 0.2 Rs' },
+      { ev: '+4 EV', shutter: '1/4', subject: 'corona 0.5 Rs' },
     ],
     notes:
-      'Same 2 EV step as C2 — one press, five RAWs out to 3.2 seconds. C2 bottoms out at Q = −1; this carries the ladder four stops further, to Q = −5. Three attempts are scheduled inside totality; do not touch the rig while a burst runs.',
+      'One press, five RAWs, well under two seconds. The 1/1000 and 1/250 frames are the prominence money shots — the range the requirements call ~1/500–1/1000 at f/8. The slow end reaches 0.5 Rs, where dial C2’s ladder picks up, so the two sets splice into one HDR curve.',
   },
   {
     id: 'c4',
@@ -98,7 +99,7 @@ export const CUSTOM_MODES = [
     tagline: '2nd and 3rd contact',
     headline: 'ISO 200 · 1/2500 · ProCap SH2',
     notes:
-      'Half-press to arm, full-press on the flash. Falls back to Sequential H, 10 fps, if ProCap balks at the MC-20.',
+      'Half-press to arm, full-press on the flash. Falls back to Sequential H, 10 fps, if ProCap balks.',
   },
 ]
 
