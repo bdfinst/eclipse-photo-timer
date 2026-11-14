@@ -1,8 +1,12 @@
 /**
- * Prep checklist groups — item text transcribed verbatim from
- * eclipse-timer-spec.md §5.2 (markdown emphasis/code-span markers stripped;
- * the wording itself is unchanged). Item `id`s are this file's own addition —
- * the spec has no ids — used as the persistence key under `eclipse.checklist`.
+ * Prep checklist groups — item text transcribed from eclipse-timer-spec.md
+ * §5.2 (markdown emphasis/code-span markers stripped), as amended by the
+ * operator's change requests, most recently the updated timelapse
+ * requirements of 2026-08-12: no teleconverter, 600mm native, f/8 fixed,
+ * C1 at ISO 100 with the shutter pinned by an on-site test series, 5-frame
+ * HDR sets on C2/C3, and the ~7.2 s timer program (INTVL 7s, N = 472).
+ * Item `id`s are this file's own addition — the spec has no ids — used as
+ * the persistence key under `eclipse.checklist`.
  *
  * @typedef {Object} ChecklistItem
  * @property {string} id
@@ -31,10 +35,10 @@ export const CHECKLIST_GROUPS = [
       { id: 'night-battery', text: 'Charge camera battery + two spares' },
       { id: 'night-power-bank', text: 'Charge Sharge power bank' },
       { id: 'night-card', text: 'Format a 64 GB+ UHS-II card, in slot 1' },
-      { id: 'night-procap', text: 'Confirm ProCap SH2 works with the MC-20 attached' },
+      { id: 'night-procap', text: 'Confirm ProCap SH2 works with the 150-600 (no TC mounted)' },
       {
         id: 'night-meter',
-        text: 'Meter the solar filter: 1/320 at ISO 200, f/13 should be correct',
+        text: 'Meter the solar filter: ~1/1000–1/2000 at ISO 100, f/8 expected — final value on site',
       },
       {
         id: 'night-clock-offset',
@@ -48,17 +52,17 @@ export const CHECKLIST_GROUPS = [
     items: [
       {
         id: 'camera-c1',
-        text: 'C1 — M, wide open (f/13), ISO 200, 1/320, Single drive, silent, RAW, WB 5400K',
+        text: 'C1 — M, f/8, ISO 100, ~1/1000, Single drive, silent, RAW, WB 5400K',
       },
       {
         id: 'camera-c2',
-        text: 'C2 — M, wide open, ISO 200, base 1/40, HDR 7f 2.0EV',
+        text: 'C2 — M, f/8, ISO 1600, base 1/8, HDR 5f 2.0EV',
       },
       {
         id: 'camera-c3',
-        text: 'C3 — M, wide open, ISO 1600, base 1/5, HDR 5f 2.0EV',
+        text: 'C3 — M, f/8, ISO 200, base 1/60, HDR 5f 2.0EV',
       },
-      { id: 'camera-c4', text: 'C4 — M, wide open, ISO 200, 1/2500, ProCap SH2' },
+      { id: 'camera-c4', text: 'C4 — M, f/8, ISO 200, 1/2500, ProCap SH2' },
       { id: 'camera-iso', text: 'ISO is not Auto' },
       { id: 'camera-sleep', text: 'Sleep / auto power-off OFF' },
       { id: 'camera-rec-view', text: 'Rec View OFF' },
@@ -79,10 +83,10 @@ export const CHECKLIST_GROUPS = [
         id: 'site-polar-align',
         text: 'Tripod level, GTi polar aligned, solar tracking rate selected',
       },
-      { id: 'site-balance', text: 'Balanced at the 500 zoom mark, slightly camera-heavy' },
+      { id: 'site-balance', text: 'Balanced at the 600 stop, slightly camera-heavy' },
       {
         id: 'site-zoom-taped',
-        text: 'Zoom set to the 500 mark and taped — it does not move again today',
+        text: 'Zoom set to the 600 stop and taped — it does not move again today',
       },
       { id: 'site-friction-collar', text: 'Zoom friction collar set to T' },
       {
@@ -93,6 +97,10 @@ export const CHECKLIST_GROUPS = [
         id: 'site-usb-power',
         text: 'USB PD connected with the camera off, USBP confirmed on power-up',
       },
+      {
+        id: 'site-test-series',
+        text: 'Test exposure series through the filter — pin the C1 shutter (1/1000–1/2000 expected) against the histogram',
+      },
     ],
   },
   {
@@ -102,7 +110,7 @@ export const CHECKLIST_GROUPS = [
       { id: 't15-focus', text: 'Focus locked and taped' },
       {
         id: 't15-timer',
-        text: 'Timer programmed: DELAY 0, LONG 1s, INTVL 4s, N = 826',
+        text: 'Timer programmed: DELAY 0, LONG 1s, INTVL 7s, N = 472',
       },
       { id: 't15-dry-run', text: 'Dry-run burst fired and reviewed' },
       {

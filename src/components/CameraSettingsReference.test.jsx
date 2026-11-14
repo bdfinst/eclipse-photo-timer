@@ -11,9 +11,7 @@ describe('CameraSettingsReference', () => {
     render(<CameraSettingsReference />)
 
     expect(
-      screen.getByText(
-        'OM-1 · 150-600 + MC-20 · LOCKED at the 500 mark = 1000mm true, f/13 · SafeSight ND 5.0',
-      ),
+      screen.getByText('OM-1 · 150-600, no TC · LOCKED at 600mm, f/8 · SafeSight ND 5.0'),
     ).toBeInTheDocument()
   })
 
@@ -33,14 +31,14 @@ describe('CameraSettingsReference', () => {
     render(<CameraSettingsReference />)
 
     expect(screen.getByText('Dial C1 — Partial phases')).toBeInTheDocument()
-    expect(screen.getByText('ISO 200 · 1/320 · Single drive')).toBeInTheDocument()
-    expect(screen.getByText('Dial C2 — Totality bracket')).toBeInTheDocument()
+    expect(screen.getByText('ISO 100 · ~1/1000 · Single drive')).toBeInTheDocument()
+    expect(screen.getByText('Dial C2 — Earthshine & outer corona')).toBeInTheDocument()
     expect(
-      screen.getByText('ISO 200 · base 1/40 · Menu › Shooting 2 › HDR › 7f 2.0EV'),
+      screen.getByText('ISO 1600 · base 1/8 · Menu › Shooting 2 › HDR › 5f 2.0EV'),
     ).toBeInTheDocument()
-    expect(screen.getByText('Dial C3 — Outer corona & earthshine')).toBeInTheDocument()
+    expect(screen.getByText('Dial C3 — Prominences & inner corona')).toBeInTheDocument()
     expect(
-      screen.getByText('ISO 1600 · base 1/5 · Menu › Shooting 2 › HDR › 5f 2.0EV'),
+      screen.getByText('ISO 200 · base 1/60 · Menu › Shooting 2 › HDR › 5f 2.0EV'),
     ).toBeInTheDocument()
     expect(screen.getByText("Dial C4 — Diamond ring / Baily's beads")).toBeInTheDocument()
     expect(screen.getByText('ISO 200 · 1/2500 · ProCap SH2')).toBeInTheDocument()
@@ -50,10 +48,10 @@ describe('CameraSettingsReference', () => {
   // unambiguous with getByText. The literal arrays double as both the data
   // oracle (toEqual) and the render oracle (every row asserted on screen —
   // a dropped middle row must fail, not just the endpoints).
-  const C2_SHUTTERS = ['1/2500', '1/640', '1/160', '1/40', '1/10', '0.4"', '1.6"']
-  const C3_SHUTTERS = ['1/80', '1/20', '1/5', '0.8"', '3.2"']
+  const C2_SHUTTERS = ['1/125', '1/30', '1/8', '0.5"', '2"']
+  const C3_SHUTTERS = ['1/1000', '1/250', '1/60', '1/15', '1/4']
 
-  it("renders C2's full seven-frame ladder from 1/2500 to 1.6 seconds", () => {
+  it("renders C2's five-frame earthshine ladder out to 2 seconds", () => {
     render(<CameraSettingsReference />)
 
     const c2 = CUSTOM_MODES.find((mode) => mode.id === 'c2')
@@ -61,15 +59,15 @@ describe('CameraSettingsReference', () => {
     for (const shutter of C2_SHUTTERS) {
       expect(screen.getByText(shutter)).toBeInTheDocument()
     }
-    expect(screen.getByText('chromosphere')).toBeInTheDocument()
-    expect(screen.getByText('0.2 Rs + diamond')).toBeInTheDocument()
-    // The +6EV frame is honest about the 1.4 Rs frame limit (reference-card
-    // text change request §2): 'frame edge', never 'corona 4.0 Rs'.
-    expect(screen.getAllByText('frame edge')).toHaveLength(2)
-    expect(screen.queryByText(/corona [48]\.0 Rs/)).not.toBeInTheDocument()
+    expect(screen.getByText('earthshine')).toBeInTheDocument()
+    expect(screen.getByText('lunar disk')).toBeInTheDocument()
+    // The base frame is honest about the 2.3 Rs frame limit at 600mm:
+    // 'frame edge', never a corona radius the frame cannot hold.
+    expect(screen.getByText('frame edge')).toBeInTheDocument()
+    expect(screen.queryByText(/corona [3-9](\.\d)? ?Rs/)).not.toBeInTheDocument()
   })
 
-  it("renders C3's five-frame ladder ending at the earthshine stretch goal", () => {
+  it("renders C3's five-frame prominence ladder from 1/1000", () => {
     render(<CameraSettingsReference />)
 
     const c3 = CUSTOM_MODES.find((mode) => mode.id === 'c3')
@@ -77,9 +75,8 @@ describe('CameraSettingsReference', () => {
     for (const shutter of C3_SHUTTERS) {
       expect(screen.getByText(shutter)).toBeInTheDocument()
     }
-    expect(screen.getByText('earthshine')).toBeInTheDocument()
-    // +2EV overexposes the eclipsed lunar disk, not 8.0 Rs corona (§3).
-    expect(screen.getByText('lunar disk')).toBeInTheDocument()
+    expect(screen.getByText('chromosphere')).toBeInTheDocument()
+    expect(screen.getByText('prominences')).toBeInTheDocument()
   })
 
   it('renders the filter rule warning', () => {

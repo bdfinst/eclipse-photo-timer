@@ -188,27 +188,25 @@ describe('PrepScreen reference card', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Menu' }))
     fireEvent.click(screen.getByRole('button', { name: 'Reference card' }))
 
-    // The fixed-focal change request's accordion block, verbatim (f/13 —
-    // do not recompute). Testing Library's normalizer collapses runs of
-    // whitespace to a single space before matching.
+    // The updated-requirements accordion block, verbatim (600mm native,
+    // f/8 — do not recompute). Testing Library's normalizer collapses runs
+    // of whitespace to a single space before matching.
     expect(
-      screen.getByText('Zoom LOCKED at the 500 mark all day — 1000mm true, f/13. Never changes.'),
+      screen.getByText('Zoom LOCKED at 600mm all day — no TC, f/8. Never changes.'),
     ).toBeInTheDocument()
     expect(
       screen.getByText(
-        'C2 bracket (base 1/40): 1/2500 · 1/640 · 1/160 · 1/40 · 1/10 · 0.4" · 1.6"',
+        'C2 bracket (base 1/8): 1/125 · 1/30 · 1/8 · 0.5" · 2" ← 2" is the earthshine frame',
       ),
     ).toBeInTheDocument()
     expect(
-      screen.getByText(
-        'C3 bracket (base 1/5): 1/80 · 1/20 · 1/5 · 0.8" · 3.2" ← 3.2" is the earthshine frame',
-      ),
+      screen.getByText('C3 bracket (base 1/60): 1/1000 · 1/250 · 1/60 · 1/15 · 1/4'),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('Partial (C1, filter on): 1/320 | Diamond ring (C4): 1/2500'),
+      screen.getByText('Partial (C1, filter on): ~1/1000 | Diamond ring (C4): 1/2500'),
     ).toBeInTheDocument()
     expect(
-      screen.getByText('Frame at 1000mm: sun fills 71% of height, corona to 1.4 × 1.9 Rs.'),
+      screen.getByText('Frame at 600mm: sun fills 43% of height, corona to 2.3 × 3.1 Rs.'),
     ).toBeInTheDocument()
   })
 
@@ -225,9 +223,9 @@ describe('PrepScreen reference card', () => {
         'The camera’s four custom dial modes are labelled C1–C4, and so are the eclipse contacts. “Dial Cn” always means the camera mode.',
       ),
     ).toBeInTheDocument()
-    expect(screen.getByText('Dial C2 — Totality bracket')).toBeInTheDocument()
+    expect(screen.getByText('Dial C2 — Earthshine & outer corona')).toBeInTheDocument()
     // Rig page (field card page 2) renders below the camera settings.
-    expect(screen.getByText('DELAY 0 · LONG 1″ · INTVL 4″ · N = 826')).toBeInTheDocument()
+    expect(screen.getByText('DELAY 0 · LONG 1″ · INTVL 7″ · N = 472')).toBeInTheDocument()
     expect(
       screen.getByText(
         'FILTER ON for every second outside totality. OFF only between 2nd and 3rd contact.',

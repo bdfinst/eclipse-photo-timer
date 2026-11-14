@@ -607,9 +607,9 @@ describe('LiveScreen full rehearsal run at C2 -30s (spec §8, plan Slice 10 Step
       })
     }
 
-    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst one.')
-    expect(speak).toHaveBeenCalledWith('C three. Earthshine burst two.')
-    expect(speak).toHaveBeenCalledWith('C three. Last earthshine burst.')
+    expect(speak).toHaveBeenCalledWith('C two. Earthshine sets. Two presses.')
+    expect(speak).toHaveBeenCalledWith('C two. Earthshine sets two. Three presses.')
+    expect(speak).toHaveBeenCalledWith('C two. Last earthshine sets. Three presses.')
     for (const [spoken] of speak.mock.calls) {
       expect(spoken).not.toMatch(/[Zz]oom/)
     }
@@ -749,7 +749,7 @@ describe('LiveScreen event list — completed steps removed', () => {
 
     const block = within(screen.getByTestId('totality-block'))
     expect(block.getByText('FILTER OFF — diamond ring')).toBeInTheDocument()
-    expect(block.getByText('Bracket burst 1')).toBeInTheDocument()
+    expect(block.getByText('Prominence sets 1')).toBeInTheDocument()
 
     const list = within(screen.getByTestId('event-list'))
     expect(list.queryByText('Final check — hand on the filter')).not.toBeInTheDocument()
